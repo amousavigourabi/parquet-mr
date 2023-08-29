@@ -23,6 +23,8 @@ import org.apache.avro.LogicalTypes;
 import org.apache.avro.Schema;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.parquet.conf.HadoopParquetConfiguration;
+import org.apache.parquet.conf.ParquetConfiguration;
 import org.apache.parquet.schema.ConversionPatterns;
 import org.apache.parquet.schema.GroupType;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
@@ -102,10 +104,14 @@ public class AvroSchemaConverter {
   }
 
   public AvroSchemaConverter(Configuration conf) {
+    this(new HadoopParquetConfiguration(conf));
+  }
+
+  public AvroSchemaConverter(ParquetConfiguration conf) {
     this.assumeRepeatedIsListElement = conf.getBoolean(
-        ADD_LIST_ELEMENT_RECORDS, ADD_LIST_ELEMENT_RECORDS_DEFAULT);
+      ADD_LIST_ELEMENT_RECORDS, ADD_LIST_ELEMENT_RECORDS_DEFAULT);
     this.writeOldListStructure = conf.getBoolean(
-        WRITE_OLD_LIST_STRUCTURE, WRITE_OLD_LIST_STRUCTURE_DEFAULT);
+      WRITE_OLD_LIST_STRUCTURE, WRITE_OLD_LIST_STRUCTURE_DEFAULT);
     this.writeParquetUUID = conf.getBoolean(WRITE_PARQUET_UUID, WRITE_PARQUET_UUID_DEFAULT);
     this.readInt96AsFixed = conf.getBoolean(READ_INT96_AS_FIXED, READ_INT96_AS_FIXED_DEFAULT);
     this.pathsToInt96 = new HashSet<>(Arrays.asList(conf.getStrings(WRITE_FIXED_AS_INT96, new String[0])));

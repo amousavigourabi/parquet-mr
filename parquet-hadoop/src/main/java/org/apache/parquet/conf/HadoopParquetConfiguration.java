@@ -23,10 +23,14 @@ import org.apache.hadoop.conf.Configuration;
 
 public class HadoopParquetConfiguration implements ParquetConfiguration {
 
-  Configuration configuration;
+  private final Configuration configuration;
 
   public HadoopParquetConfiguration(Configuration conf) {
     configuration = conf;
+  }
+
+  public Configuration getConfiguration() {
+    return configuration;
   }
 
   @Override

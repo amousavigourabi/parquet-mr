@@ -37,6 +37,8 @@ import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.parquet.bytes.ByteBufferAllocator;
 import org.apache.parquet.bytes.BytesInput;
 import org.apache.parquet.compression.CompressionCodecFactory;
+import org.apache.parquet.conf.HadoopParquetConfiguration;
+import org.apache.parquet.conf.ParquetConfiguration;
 import org.apache.parquet.hadoop.codec.ZstandardCodec;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 
@@ -48,7 +50,7 @@ public class CodecFactory implements CompressionCodecFactory {
   private final Map<CompressionCodecName, BytesCompressor> compressors = new HashMap<CompressionCodecName, BytesCompressor>();
   private final Map<CompressionCodecName, BytesDecompressor> decompressors = new HashMap<CompressionCodecName, BytesDecompressor>();
 
-  protected final Configuration configuration;
+  protected final ParquetConfiguration configuration;
   protected final int pageSize;
 
   /**
@@ -61,6 +63,19 @@ public class CodecFactory implements CompressionCodecFactory {
    *                 decompressors this parameter has no impact on the function of the factory
    */
   public CodecFactory(Configuration configuration, int pageSize) {
+    this(new HadoopParquetConfiguration(configuration), pageSize);
+  }
+
+  /**
+   * Create a new codec factory.
+   *
+   * @param configuration used to pass compression codec configuration information
+   * @param pageSize the expected page size, does not set a hard limit, currently just
+   *                 used to set the initial size of the output stream used when
+   *                 compressing a buffer. If this factory is only used to construct
+   *                 decompressors this parameter has no impact on the function of the factory
+   */
+  public CodecFactory(ParquetConfiguration configuration, int pageSize) {
     this.configuration = configuration;
     this.pageSize = pageSize;
   }
@@ -247,7 +262,7 @@ public class CodecFactory implements CompressionCodecFactory {
         // Try to load the class using the job classloader
         codecClass = configuration.getClassLoader().loadClass(codecClassName);
       }
-      codec = (CompressionCodec) ReflectionUtils.newInstance(codecClass, configuration);
+      codec = (CompressionCodec) ReflectionUtils.newInstance(codecClass, ((HadoopParquetConfiguration) configuration).getConfiguration());
       CODEC_BY_NAME.put(codecClassName, codec);
       return codec;
     } catch (ClassNotFoundException e) {

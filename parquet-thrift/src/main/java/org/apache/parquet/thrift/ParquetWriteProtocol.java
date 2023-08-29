@@ -22,6 +22,8 @@ package org.apache.parquet.thrift;
 import java.nio.ByteBuffer;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.parquet.conf.HadoopParquetConfiguration;
+import org.apache.parquet.conf.ParquetConfiguration;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TField;
 import org.apache.thrift.protocol.TList;
@@ -499,11 +501,16 @@ public class ParquetWriteProtocol extends ParquetProtocol {
   }
 
   public ParquetWriteProtocol(
-      Configuration configuration, RecordConsumer recordConsumer, MessageColumnIO schema, StructType thriftType) {
+    Configuration configuration, RecordConsumer recordConsumer, MessageColumnIO schema, StructType thriftType) {
+    this(new HadoopParquetConfiguration(configuration), recordConsumer, schema, thriftType);
+  }
+
+  public ParquetWriteProtocol(
+    ParquetConfiguration configuration, RecordConsumer recordConsumer, MessageColumnIO schema, StructType thriftType) {
     this.recordConsumer = recordConsumer;
     if (configuration != null) {
       this.writeThreeLevelList = configuration.getBoolean(
-          WRITE_THREE_LEVEL_LISTS, WRITE_THREE_LEVEL_LISTS_DEFAULT);
+        WRITE_THREE_LEVEL_LISTS, WRITE_THREE_LEVEL_LISTS_DEFAULT);
     }
     this.currentProtocol = new MessageWriteProtocol(schema, thriftType);
   }
