@@ -547,6 +547,9 @@
             </excludeModules>
             <excludes>
               <exclude>${shade.prefix}</exclude>
+              <exclude>org.apache.parquet.hadoop.api.WriteSupport</exclude>
+              <exclude>org.apache.parquet.hadoop.CodecFactory</exclude>
+              <exclude>org.apache.parquet.hadoop.ParquetWriter</exclude>
               <exclude>org.apache.parquet.thrift.projection.deprecated.PathGlobPattern</exclude>
             </excludes>
           </parameter>
