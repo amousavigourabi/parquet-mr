@@ -306,10 +306,11 @@ public class ParquetWriter<T> implements Closeable {
     MessageType schema = writeContext.getSchema();
 
     // encryptionProperties could be built from the implementation of EncryptionPropertiesFactory when it is attached.
-    if (encryptionProperties == null) {
+    if (encryptionProperties == null && conf instanceof HadoopParquetConfiguration) {
       String path = file == null ? null : file.getPath();
+      HadoopParquetConfiguration hadoopConf = ((HadoopParquetConfiguration) conf);
       encryptionProperties = ParquetOutputFormat.createEncryptionProperties(
-        conf instanceof HadoopParquetConfiguration && ((HadoopParquetConfiguration) conf).getConfiguration() != null ? ((HadoopParquetConfiguration) conf).getConfiguration() : new Configuration(),
+        hadoopConf.getConfiguration() == null ? new Configuration() : hadoopConf.getConfiguration(),
         path == null ? null : new Path(path), writeContext);
     }
 

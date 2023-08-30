@@ -45,6 +45,7 @@ import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.Type;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.parquet.Preconditions;
+import org.apache.parquet.util.Reflection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -434,9 +435,12 @@ public class AvroWriteSupport<T> extends WriteSupport<T> {
 
     Class<? extends AvroDataSupplier> suppClass = conf.getClass(
       AVRO_DATA_SUPPLIER, SpecificDataSupplier.class, AvroDataSupplier.class);
-    return ReflectionUtils.newInstance(suppClass,
-      conf instanceof HadoopParquetConfiguration && ((HadoopParquetConfiguration) conf).getConfiguration() != null ? ((HadoopParquetConfiguration) conf).getConfiguration() : new Configuration())
-      .get();
+    if (conf instanceof HadoopParquetConfiguration) {
+      HadoopParquetConfiguration hadoopConf = (HadoopParquetConfiguration) conf;
+      return ReflectionUtils.newInstance(suppClass, hadoopConf.getConfiguration() == null ? new Configuration() : hadoopConf.getConfiguration()).get();
+    } else {
+      return Reflection.newInstance(suppClass).get();
+    }
   }
 
   private abstract class ListWriter {
