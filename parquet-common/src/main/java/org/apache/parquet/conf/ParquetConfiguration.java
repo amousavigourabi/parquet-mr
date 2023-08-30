@@ -23,6 +23,8 @@ public interface ParquetConfiguration {
 
   void set(String name, String value);
 
+  void setBoolean(String name, boolean value);
+
   String get(String name);
 
   String get(String name, String defaultValue);

@@ -39,6 +39,11 @@ public class HadoopParquetConfiguration implements ParquetConfiguration {
   }
 
   @Override
+  public void setBoolean(String name, boolean value) {
+    configuration.setBoolean(name, value);
+  }
+
+  @Override
   public String get(String name) {
     return configuration.get(name);
   }
