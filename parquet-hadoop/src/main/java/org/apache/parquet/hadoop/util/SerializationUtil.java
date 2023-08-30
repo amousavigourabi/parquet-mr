@@ -29,6 +29,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.parquet.conf.HadoopParquetConfiguration;
+import org.apache.parquet.conf.ParquetConfiguration;
 
 /**
  * Serialization utils copied from:
@@ -70,19 +72,33 @@ public final class SerializationUtil {
    * @return the read object, or null if key is not present in conf
    * @throws IOException if there is an error while reading
    */
-  @SuppressWarnings("unchecked")
   public static <T> T readObjectFromConfAsBase64(String key, Configuration conf) throws IOException {
+    return readObjectFromConfAsBase64(key, new HadoopParquetConfiguration(conf));
+  }
+
+  /**
+   * Reads an object (that was written using
+   * {@link #writeObjectToConfAsBase64}) from a configuration
+   *
+   * @param key for the configuration
+   * @param conf to read from
+   * @param <T> the Java type of the deserialized object
+   * @return the read object, or null if key is not present in conf
+   * @throws IOException if there is an error while reading
+   */
+  @SuppressWarnings("unchecked")
+  public static <T> T readObjectFromConfAsBase64(String key, ParquetConfiguration conf) throws IOException {
     String b64 = conf.get(key);
     if (b64 == null) {
       return null;
     }
 
     byte[] bytes =
-        Base64.getMimeDecoder().decode(b64.getBytes(StandardCharsets.UTF_8));
+      Base64.getMimeDecoder().decode(b64.getBytes(StandardCharsets.UTF_8));
 
     try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-           GZIPInputStream gis = new GZIPInputStream(bais);
-           ObjectInputStream ois  = new ObjectInputStream(gis)) {
+         GZIPInputStream gis = new GZIPInputStream(bais);
+         ObjectInputStream ois  = new ObjectInputStream(gis)) {
       return (T) ois.readObject();
     } catch (ClassNotFoundException e) {
       throw new IOException("Could not read object from config with key " + key, e);

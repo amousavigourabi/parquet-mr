@@ -22,6 +22,7 @@ package org.apache.parquet;
 import org.apache.parquet.bytes.ByteBufferAllocator;
 import org.apache.parquet.bytes.HeapByteBufferAllocator;
 import org.apache.parquet.compression.CompressionCodecFactory;
+import org.apache.parquet.conf.ParquetConfiguration;
 import org.apache.parquet.crypto.FileDecryptionProperties;
 import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.format.converter.ParquetMetadataConverter;
@@ -34,9 +35,15 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.apache.parquet.format.converter.ParquetMetadataConverter.NO_FILTER;
+import static org.apache.parquet.hadoop.ParquetInputFormat.*;
+import static org.apache.parquet.hadoop.ParquetInputFormat.getFilter;
+import static org.apache.parquet.hadoop.UnmaterializableRecordCounter.BAD_RECORD_THRESHOLD_CONF_KEY;
 
 // Internal use only
 public class ParquetReadOptions {
+
+  private static final String ALLOCATION_SIZE = "parquet.read.allocation.size";
+
   private static final boolean RECORD_FILTERING_ENABLED_DEFAULT = true;
   private static final boolean STATS_FILTERING_ENABLED_DEFAULT = true;
   private static final boolean DICTIONARY_FILTERING_ENABLED_DEFAULT = true;
@@ -168,6 +175,10 @@ public class ParquetReadOptions {
     return new Builder();
   }
 
+  public static Builder builder(ParquetConfiguration conf) {
+    return new Builder(conf);
+  }
+
   public static class Builder {
     protected boolean useSignedStringMinMax = false;
     protected boolean useStatsFilter = STATS_FILTERING_ENABLED_DEFAULT;
@@ -185,6 +196,27 @@ public class ParquetReadOptions {
     protected int maxAllocationSize = ALLOCATION_SIZE_DEFAULT;
     protected Map<String, String> properties = new HashMap<>();
     protected FileDecryptionProperties fileDecryptionProperties = null;
+
+    public Builder() {}
+
+    public Builder(ParquetConfiguration conf) {
+      useSignedStringMinMax(conf.getBoolean("parquet.strings.signed-min-max.enabled", false));
+      useDictionaryFilter(conf.getBoolean(DICTIONARY_FILTERING_ENABLED, true));
+      useStatsFilter(conf.getBoolean(STATS_FILTERING_ENABLED, true));
+      useRecordFilter(conf.getBoolean(RECORD_FILTERING_ENABLED, true));
+      useColumnIndexFilter(conf.getBoolean(COLUMN_INDEX_FILTERING_ENABLED, true));
+      usePageChecksumVerification(conf.getBoolean(PAGE_VERIFY_CHECKSUM_ENABLED,
+        usePageChecksumVerification));
+      useBloomFilter(conf.getBoolean(BLOOM_FILTERING_ENABLED, true));
+      useOffHeapDecryptBuffer(conf.getBoolean(OFF_HEAP_DECRYPT_BUFFER_ENABLED, false));
+      withCodecFactory(HadoopCodecs.newFactory(conf, 0));
+      withRecordFilter(getFilter(conf));
+      withMaxAllocationInBytes(conf.getInt(ALLOCATION_SIZE, 8388608));
+      String badRecordThresh = conf.get(BAD_RECORD_THRESHOLD_CONF_KEY);
+      if (badRecordThresh != null) {
+        set(BAD_RECORD_THRESHOLD_CONF_KEY, badRecordThresh);
+      }
+    }
 
     public Builder useSignedStringMinMax(boolean useSignedStringMinMax) {
       this.useSignedStringMinMax = useSignedStringMinMax;

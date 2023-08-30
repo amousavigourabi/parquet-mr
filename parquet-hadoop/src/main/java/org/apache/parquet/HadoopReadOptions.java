@@ -23,6 +23,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.bytes.ByteBufferAllocator;
 import org.apache.parquet.compression.CompressionCodecFactory;
+import org.apache.parquet.conf.HadoopParquetConfiguration;
 import org.apache.parquet.crypto.DecryptionPropertiesFactory;
 import org.apache.parquet.crypto.FileDecryptionProperties;
 import org.apache.parquet.filter2.compat.FilterCompat;
@@ -43,8 +44,6 @@ import static org.apache.parquet.hadoop.UnmaterializableRecordCounter.BAD_RECORD
 
 public class HadoopReadOptions extends ParquetReadOptions {
   private final Configuration conf;
-
-  private static final String ALLOCATION_SIZE = "parquet.read.allocation.size";
 
   private HadoopReadOptions(boolean useSignedStringMinMax,
                             boolean useStatsFilter,
@@ -100,24 +99,9 @@ public class HadoopReadOptions extends ParquetReadOptions {
     }
 
     public Builder(Configuration conf, Path filePath) {
+      super(new HadoopParquetConfiguration(conf));
       this.conf = conf;
       this.filePath = filePath;
-      useSignedStringMinMax(conf.getBoolean("parquet.strings.signed-min-max.enabled", false));
-      useDictionaryFilter(conf.getBoolean(DICTIONARY_FILTERING_ENABLED, true));
-      useStatsFilter(conf.getBoolean(STATS_FILTERING_ENABLED, true));
-      useRecordFilter(conf.getBoolean(RECORD_FILTERING_ENABLED, true));
-      useColumnIndexFilter(conf.getBoolean(COLUMN_INDEX_FILTERING_ENABLED, true));
-      usePageChecksumVerification(conf.getBoolean(PAGE_VERIFY_CHECKSUM_ENABLED,
-        usePageChecksumVerification));
-      useBloomFilter(conf.getBoolean(BLOOM_FILTERING_ENABLED, true));
-      useOffHeapDecryptBuffer(conf.getBoolean(OFF_HEAP_DECRYPT_BUFFER_ENABLED, false));
-      withCodecFactory(HadoopCodecs.newFactory(conf, 0));
-      withRecordFilter(getFilter(conf));
-      withMaxAllocationInBytes(conf.getInt(ALLOCATION_SIZE, 8388608));
-      String badRecordThresh = conf.get(BAD_RECORD_THRESHOLD_CONF_KEY);
-      if (badRecordThresh != null) {
-        set(BAD_RECORD_THRESHOLD_CONF_KEY, badRecordThresh);
-      }
     }
 
     @Override
