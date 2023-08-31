@@ -21,6 +21,7 @@ package org.apache.parquet.proto;
 import com.google.protobuf.Message;
 import com.twitter.elephantbird.util.Protobufs;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.parquet.conf.ParquetConfiguration;
 import org.apache.parquet.hadoop.api.InitContext;
 import org.apache.parquet.hadoop.api.ReadSupport;
 import org.apache.parquet.io.api.RecordMaterializer;
@@ -59,7 +60,7 @@ public class ProtoReadSupport<T extends Message> extends ReadSupport<T> {
 
   @Override
   public ReadContext init(InitContext context) {
-    String requestedProjectionString = context.getConfiguration().get(PB_REQUESTED_PROJECTION);
+    String requestedProjectionString = context.getConfig().get(PB_REQUESTED_PROJECTION);
 
     if (requestedProjectionString != null && !requestedProjectionString.trim().isEmpty()) {
       MessageType requestedProjection = getSchemaForRead(context.getFileSchema(), requestedProjectionString);
@@ -74,6 +75,27 @@ public class ProtoReadSupport<T extends Message> extends ReadSupport<T> {
 
   @Override
   public RecordMaterializer<T> prepareForRead(Configuration configuration, Map<String, String> keyValueMetaData, MessageType fileSchema, ReadContext readContext) {
+    String headerProtoClass = keyValueMetaData.get(PB_CLASS);
+    String configuredProtoClass = configuration.get(PB_CLASS);
+
+    if (configuredProtoClass != null) {
+      LOG.debug("Replacing class " + headerProtoClass + " by " + configuredProtoClass);
+      headerProtoClass = configuredProtoClass;
+    }
+
+    if (headerProtoClass == null) {
+      throw new RuntimeException("I Need parameter " + PB_CLASS + " with Protocol Buffer class");
+    }
+
+    LOG.debug("Reading data with Protocol Buffer class {}", headerProtoClass);
+
+    MessageType requestedSchema = readContext.getRequestedSchema();
+    Class<? extends Message> protobufClass = Protobufs.getProtobufClass(headerProtoClass);
+    return new ProtoRecordMaterializer(configuration, requestedSchema, protobufClass, keyValueMetaData);
+  }
+
+  @Override
+  public RecordMaterializer<T> prepareForRead(ParquetConfiguration configuration, Map<String, String> keyValueMetaData, MessageType fileSchema, ReadContext readContext) {
     String headerProtoClass = keyValueMetaData.get(PB_CLASS);
     String configuredProtoClass = configuration.get(PB_CLASS);
 

@@ -182,6 +182,10 @@ public class ParquetReader<T> implements Closeable {
     return new Builder<>(file);
   }
 
+  public static <T> Builder<T> read(InputFile file, ParquetConfiguration conf) throws IOException {
+    return new Builder<>(file, conf);
+  }
+
   public static <T> Builder<T> builder(ReadSupport<T> readSupport, Path path) {
     return new Builder<>(readSupport, path);
   }
@@ -225,7 +229,21 @@ public class ParquetReader<T> implements Closeable {
         this.conf = new HadoopParquetConfiguration(hadoopConf);
         optionsBuilder = HadoopReadOptions.builder(hadoopConf, hadoopFile.getPath());
       } else {
-        optionsBuilder = ParquetReadOptions.builder();
+        optionsBuilder = ParquetReadOptions.builder(new HadoopParquetConfiguration(new Configuration()));
+      }
+    }
+
+    protected Builder(InputFile file, ParquetConfiguration conf) {
+      this.readSupport = null;
+      this.file = Objects.requireNonNull(file, "file cannot be null");
+      this.path = null;
+      this.conf = conf;
+      if (conf instanceof HadoopParquetConfiguration && file instanceof HadoopInputFile) {
+        HadoopParquetConfiguration hadoopConf = (HadoopParquetConfiguration) conf;
+        HadoopInputFile hadoopFile = (HadoopInputFile) file;
+        optionsBuilder = HadoopReadOptions.builder(hadoopConf.getConfiguration(), hadoopFile.getPath());
+      } else {
+        optionsBuilder = ParquetReadOptions.builder(conf);
       }
     }
 

@@ -22,6 +22,7 @@ import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 
+import org.apache.parquet.conf.ParquetConfiguration;
 import org.apache.parquet.io.api.RecordMaterializer;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.MessageTypeParser;
@@ -69,9 +70,17 @@ abstract public class ReadSupport<T> {
    */
   @Deprecated
   public ReadContext init(
-          Configuration configuration,
-          Map<String, String> keyValueMetaData,
-          MessageType fileSchema) {
+    Configuration configuration,
+    Map<String, String> keyValueMetaData,
+    MessageType fileSchema) {
+    throw new UnsupportedOperationException("Override init(InitContext)");
+  }
+
+  @Deprecated
+  public ReadContext init(
+    ParquetConfiguration configuration,
+    Map<String, String> keyValueMetaData,
+    MessageType fileSchema) {
     throw new UnsupportedOperationException("Override init(InitContext)");
   }
 
@@ -82,7 +91,7 @@ abstract public class ReadSupport<T> {
    * @return the readContext that defines how to read the file
    */
   public ReadContext init(InitContext context) {
-    return init(context.getConfiguration(), context.getMergedKeyValueMetaData(), context.getFileSchema());
+    return init(context.getConfig(), context.getMergedKeyValueMetaData(), context.getFileSchema());
   }
 
   /**
@@ -96,10 +105,16 @@ abstract public class ReadSupport<T> {
    * @return the recordMaterializer that will materialize the records
    */
   abstract public RecordMaterializer<T> prepareForRead(
-          Configuration configuration,
-          Map<String, String> keyValueMetaData,
-          MessageType fileSchema,
-          ReadContext readContext);
+    Configuration configuration,
+    Map<String, String> keyValueMetaData,
+    MessageType fileSchema,
+    ReadContext readContext);
+
+  abstract public RecordMaterializer<T> prepareForRead(
+    ParquetConfiguration configuration,
+    Map<String, String> keyValueMetaData,
+    MessageType fileSchema,
+    ReadContext readContext);
 
   /**
    * information to read the file

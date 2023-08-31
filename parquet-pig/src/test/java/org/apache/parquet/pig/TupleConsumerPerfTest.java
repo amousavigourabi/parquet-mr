@@ -131,8 +131,8 @@ public class TupleConsumerPerfTest {
     TupleReadSupport tupleReadSupport = new TupleReadSupport();
     Map<String, String> pigMetaData = pigMetaData(pigSchemaString);
     MessageType schema = new PigSchemaConverter().convert(Utils.getSchemaFromString(pigSchemaString));
-    ReadContext init = tupleReadSupport.init(null, pigMetaData, schema);
-    RecordMaterializer<Tuple> recordConsumer = tupleReadSupport.prepareForRead(null, pigMetaData, schema, init);
+    ReadContext init = tupleReadSupport.init((ParquetConfiguration) null, pigMetaData, schema);
+    RecordMaterializer<Tuple> recordConsumer = tupleReadSupport.prepareForRead((ParquetConfiguration) null, pigMetaData, schema, init);
     RecordReader<Tuple> recordReader = columnIO.getRecordReader(columns, recordConsumer);
     // TODO: put this back
 //  if (DEBUG) {

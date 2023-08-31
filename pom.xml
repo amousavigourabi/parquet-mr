@@ -547,6 +547,7 @@
             </excludeModules>
             <excludes>
               <exclude>${shade.prefix}</exclude>
+              <exclude>org.apache.parquet.hadoop.api.ReadSupport</exclude>
               <exclude>org.apache.parquet.hadoop.api.WriteSupport</exclude>
               <exclude>org.apache.parquet.hadoop.CodecFactory</exclude>
               <exclude>org.apache.parquet.hadoop.ParquetReader</exclude>

@@ -24,9 +24,12 @@ import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.ReflectionUtils;
+import org.apache.parquet.conf.HadoopParquetConfiguration;
+import org.apache.parquet.conf.ParquetConfiguration;
 import org.apache.parquet.hadoop.api.ReadSupport;
 import org.apache.parquet.io.api.RecordMaterializer;
 import org.apache.parquet.schema.MessageType;
+import org.apache.parquet.util.Reflection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,6 +98,13 @@ public class AvroReadSupport<T> extends ReadSupport<T> {
   public ReadContext init(Configuration configuration,
                           Map<String, String> keyValueMetaData,
                           MessageType fileSchema) {
+    return init(new HadoopParquetConfiguration(configuration), keyValueMetaData, fileSchema);
+  }
+
+  @Override
+  public ReadContext init(ParquetConfiguration configuration,
+                          Map<String, String> keyValueMetaData,
+                          MessageType fileSchema) {
     MessageType projection = fileSchema;
     Map<String, String> metadata = new LinkedHashMap<String, String>();
 
@@ -118,8 +128,38 @@ public class AvroReadSupport<T> extends ReadSupport<T> {
 
   @Override
   public RecordMaterializer<T> prepareForRead(
-      Configuration configuration, Map<String, String> keyValueMetaData,
-      MessageType fileSchema, ReadContext readContext) {
+    Configuration configuration, Map<String, String> keyValueMetaData,
+    MessageType fileSchema, ReadContext readContext) {
+    Map<String, String> metadata = readContext.getReadSupportMetadata();
+    MessageType parquetSchema = readContext.getRequestedSchema();
+    Schema avroSchema;
+
+    if (metadata.get(AVRO_READ_SCHEMA_METADATA_KEY) != null) {
+      // use the Avro read schema provided by the user
+      avroSchema = new Schema.Parser().parse(metadata.get(AVRO_READ_SCHEMA_METADATA_KEY));
+    } else if (keyValueMetaData.get(AVRO_SCHEMA_METADATA_KEY) != null) {
+      // use the Avro schema from the file metadata if present
+      avroSchema = new Schema.Parser().parse(keyValueMetaData.get(AVRO_SCHEMA_METADATA_KEY));
+    } else if (keyValueMetaData.get(OLD_AVRO_SCHEMA_METADATA_KEY) != null) {
+      // use the Avro schema from the file metadata if present
+      avroSchema = new Schema.Parser().parse(keyValueMetaData.get(OLD_AVRO_SCHEMA_METADATA_KEY));
+    } else {
+      // default to converting the Parquet schema into an Avro schema
+      avroSchema = new AvroSchemaConverter(configuration).convert(parquetSchema);
+    }
+
+    GenericData model = getDataModel(configuration, avroSchema);
+    String compatEnabled = metadata.get(AvroReadSupport.AVRO_COMPATIBILITY);
+    if (compatEnabled != null && Boolean.valueOf(compatEnabled)) {
+      return newCompatMaterializer(parquetSchema, avroSchema, model);
+    }
+    return new AvroRecordMaterializer<T>(parquetSchema, avroSchema, model);
+  }
+
+  @Override
+  public RecordMaterializer<T> prepareForRead(
+    ParquetConfiguration configuration, Map<String, String> keyValueMetaData,
+    MessageType fileSchema, ReadContext readContext) {
     Map<String, String> metadata = readContext.getReadSupportMetadata();
     MessageType parquetSchema = readContext.getRequestedSchema();
     Schema avroSchema;
@@ -154,6 +194,10 @@ public class AvroReadSupport<T> extends ReadSupport<T> {
   }
 
   private GenericData getDataModel(Configuration conf, Schema schema) {
+    return getDataModel(new HadoopParquetConfiguration(conf), schema);
+  }
+
+  private GenericData getDataModel(ParquetConfiguration conf, Schema schema) {
     if (model != null) {
       return model;
     }
@@ -174,7 +218,11 @@ public class AvroReadSupport<T> extends ReadSupport<T> {
     }
 
     Class<? extends AvroDataSupplier> suppClass = conf.getClass(
-        AVRO_DATA_SUPPLIER, SpecificDataSupplier.class, AvroDataSupplier.class);
-    return ReflectionUtils.newInstance(suppClass, conf).get();
+      AVRO_DATA_SUPPLIER, SpecificDataSupplier.class, AvroDataSupplier.class);
+    if (conf instanceof HadoopParquetConfiguration) {
+      return ReflectionUtils.newInstance(suppClass, ((HadoopParquetConfiguration) conf).getConfiguration()).get();
+    } else {
+      return Reflection.newInstance(suppClass).get();
+    }
   }
 }
