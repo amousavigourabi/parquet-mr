@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.parquet.conf.HadoopParquetConfiguration;
+import org.apache.parquet.conf.ParquetConfiguration;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TField;
 import org.apache.thrift.protocol.TList;
@@ -843,7 +845,7 @@ public class ThriftRecordConverter<T> extends RecordMaterializer<T> {
    */
   @Deprecated
   public ThriftRecordConverter(ThriftReader<T> thriftReader, String name, MessageType requestedParquetSchema, ThriftType.StructType thriftType) {
-    this(thriftReader, name, requestedParquetSchema, thriftType, null);
+    this(thriftReader, name, requestedParquetSchema, thriftType, (ParquetConfiguration) null);
   }
 
   /**
@@ -855,6 +857,10 @@ public class ThriftRecordConverter<T> extends RecordMaterializer<T> {
    * @param conf a Configuration
    */
   public ThriftRecordConverter(ThriftReader<T> thriftReader, String name, MessageType requestedParquetSchema, ThriftType.StructType thriftType, Configuration conf) {
+    this(thriftReader, name, requestedParquetSchema, thriftType, new HadoopParquetConfiguration(conf));
+  }
+
+  public ThriftRecordConverter(ThriftReader<T> thriftReader, String name, MessageType requestedParquetSchema, ThriftType.StructType thriftType, ParquetConfiguration conf) {
     super();
     this.thriftReader = thriftReader;
     this.protocol = new ParquetReadProtocol();

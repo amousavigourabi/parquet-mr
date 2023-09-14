@@ -295,10 +295,37 @@ public class ThriftReadSupport<T> extends ReadSupport<T> {
       configuration);
   }
 
+  @SuppressWarnings("unchecked")
   private static <T> ThriftRecordConverter<T> getRecordConverterInstance(
     String converterClassName, Class<T> thriftClass,
     MessageType requestedSchema, StructType descriptor, Configuration conf) {
-    return getRecordConverterInstance(converterClassName, thriftClass, requestedSchema, descriptor, new HadoopParquetConfiguration(conf));
+    Class<ThriftRecordConverter<T>> converterClass;
+    try {
+      converterClass = (Class<ThriftRecordConverter<T>>) Class.forName(converterClassName);
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException("Cannot find Thrift converter class: " + converterClassName, e);
+    }
+
+    try {
+      // first try the new version that accepts a Configuration
+      try {
+        Constructor<ThriftRecordConverter<T>> constructor =
+          converterClass.getConstructor(Class.class, MessageType.class, StructType.class, Configuration.class);
+        return constructor.newInstance(thriftClass, requestedSchema, descriptor, conf);
+      } catch (IllegalAccessException | NoSuchMethodException e) {
+        // try the other constructor pattern
+      }
+
+      Constructor<ThriftRecordConverter<T>> constructor =
+        converterClass.getConstructor(Class.class, MessageType.class, StructType.class);
+      return constructor.newInstance(thriftClass, requestedSchema, descriptor);
+    } catch (InstantiationException | InvocationTargetException e) {
+      throw new RuntimeException("Failed to construct Thrift converter class: " + converterClassName, e);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException("Cannot access constructor for Thrift converter class: " + converterClassName, e);
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException("Cannot find constructor for Thrift converter class: " + converterClassName, e);
+    }
   }
 
   @SuppressWarnings("unchecked")
@@ -316,7 +343,7 @@ public class ThriftReadSupport<T> extends ReadSupport<T> {
       // first try the new version that accepts a Configuration
       try {
         Constructor<ThriftRecordConverter<T>> constructor =
-            converterClass.getConstructor(Class.class, MessageType.class, StructType.class, Configuration.class);
+            converterClass.getConstructor(Class.class, MessageType.class, StructType.class, ParquetConfiguration.class);
         return constructor.newInstance(thriftClass, requestedSchema, descriptor, conf);
       } catch (IllegalAccessException | NoSuchMethodException e) {
         // try the other constructor pattern
