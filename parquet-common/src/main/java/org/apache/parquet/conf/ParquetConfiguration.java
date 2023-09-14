@@ -19,7 +19,9 @@
 
 package org.apache.parquet.conf;
 
-public interface ParquetConfiguration {
+import java.util.Map;
+
+public interface ParquetConfiguration extends Iterable<Map.Entry<String,String>> {
 
   void set(String name, String value);
 

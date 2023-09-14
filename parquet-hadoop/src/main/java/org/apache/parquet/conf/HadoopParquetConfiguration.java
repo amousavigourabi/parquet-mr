@@ -21,6 +21,9 @@ package org.apache.parquet.conf;
 
 import org.apache.hadoop.conf.Configuration;
 
+import java.util.Iterator;
+import java.util.Map;
+
 public class HadoopParquetConfiguration implements ParquetConfiguration {
 
   private final Configuration configuration;
@@ -101,5 +104,10 @@ public class HadoopParquetConfiguration implements ParquetConfiguration {
   @Override
   public ClassLoader getClassLoader() {
     return configuration.getClassLoader();
+  }
+
+  @Override
+  public Iterator<Map.Entry<String, String>> iterator() {
+    return configuration.iterator();
   }
 }

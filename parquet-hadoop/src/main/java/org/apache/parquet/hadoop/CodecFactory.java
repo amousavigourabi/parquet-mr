@@ -41,7 +41,7 @@ import org.apache.parquet.conf.HadoopParquetConfiguration;
 import org.apache.parquet.conf.ParquetConfiguration;
 import org.apache.parquet.hadoop.codec.ZstandardCodec;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
-import org.apache.parquet.util.Reflection;
+import org.apache.parquet.hadoop.util.ConfigurationUtil;
 
 public class CodecFactory implements CompressionCodecFactory {
 
@@ -263,12 +263,7 @@ public class CodecFactory implements CompressionCodecFactory {
         // Try to load the class using the job classloader
         codecClass = configuration.getClassLoader().loadClass(codecClassName);
       }
-      if (configuration instanceof HadoopParquetConfiguration && ((HadoopParquetConfiguration) configuration).getConfiguration() != null) {
-        HadoopParquetConfiguration hadoopConf = (HadoopParquetConfiguration) configuration;
-        codec = (CompressionCodec) ReflectionUtils.newInstance(codecClass, hadoopConf.getConfiguration());
-      } else {
-        codec = (CompressionCodec) Reflection.newInstance(codecClass);
-      }
+      codec = (CompressionCodec) ReflectionUtils.newInstance(codecClass, ConfigurationUtil.createHadoopConfiguration(configuration));
       CODEC_BY_NAME.put(codecClassName, codec);
       return codec;
     } catch (ClassNotFoundException e) {

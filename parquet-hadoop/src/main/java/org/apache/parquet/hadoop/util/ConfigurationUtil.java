@@ -23,6 +23,8 @@ import org.apache.parquet.conf.HadoopParquetConfiguration;
 import org.apache.parquet.conf.ParquetConfiguration;
 import org.apache.parquet.hadoop.BadConfigurationException;
 
+import java.util.Map;
+
 public class ConfigurationUtil {
 
   public static Class<?> getClassFromConfig(Configuration configuration, String configName, Class<?> assignableFrom) {
@@ -45,6 +47,17 @@ public class ConfigurationUtil {
     } catch (ClassNotFoundException e) {
       throw new BadConfigurationException("could not instantiate class " + className + " set in job conf at " + configName, e);
     }
+  }
+
+  public static Configuration createHadoopConfiguration(ParquetConfiguration conf) {
+    if (conf instanceof HadoopParquetConfiguration) {
+      return ((HadoopParquetConfiguration) conf).getConfiguration();
+    }
+    Configuration configuration = new Configuration(false);
+    for (Map.Entry<String, String> entry : conf) {
+      configuration.set(entry.getKey(), entry.getValue());
+    }
+    return configuration;
   }
 
 }
