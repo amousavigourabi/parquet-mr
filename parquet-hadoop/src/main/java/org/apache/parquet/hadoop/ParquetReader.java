@@ -113,10 +113,10 @@ public class ParquetReader<T> implements Closeable {
                         ReadSupport<T> readSupport,
                         FilterCompat.Filter filter) throws IOException {
     this(Collections.singletonList((InputFile) HadoopInputFile.fromPath(file, conf)),
-      HadoopReadOptions.builder(conf, file)
-        .withRecordFilter(Objects.requireNonNull(filter, "filter cannot be null"))
-        .build(),
-      readSupport);
+        HadoopReadOptions.builder(conf, file)
+            .withRecordFilter(Objects.requireNonNull(filter, "filter cannot be null"))
+            .build(),
+        readSupport);
   }
 
   private ParquetReader(List<InputFile> files,
@@ -229,7 +229,7 @@ public class ParquetReader<T> implements Closeable {
         this.conf = new HadoopParquetConfiguration(hadoopConf);
         optionsBuilder = HadoopReadOptions.builder(hadoopConf, hadoopFile.getPath());
       } else {
-        optionsBuilder = ParquetReadOptions.builder(new HadoopParquetConfiguration(new Configuration()));
+        optionsBuilder = ParquetReadOptions.builder(new HadoopParquetConfiguration());
       }
     }
 

@@ -147,7 +147,7 @@ public class AvroWriteSupport<T> extends WriteSupport<T> {
     }
 
     boolean writeOldListStructure = configuration.getBoolean(
-      WRITE_OLD_LIST_STRUCTURE, WRITE_OLD_LIST_STRUCTURE_DEFAULT);
+        WRITE_OLD_LIST_STRUCTURE, WRITE_OLD_LIST_STRUCTURE_DEFAULT);
     if (writeOldListStructure) {
       this.listWriter = new TwoLevelListWriter();
     } else {
@@ -434,7 +434,7 @@ public class AvroWriteSupport<T> extends WriteSupport<T> {
     }
 
     Class<? extends AvroDataSupplier> suppClass = conf.getClass(
-      AVRO_DATA_SUPPLIER, SpecificDataSupplier.class, AvroDataSupplier.class);
+        AVRO_DATA_SUPPLIER, SpecificDataSupplier.class, AvroDataSupplier.class);
     return ReflectionUtils.newInstance(suppClass, ConfigurationUtil.createHadoopConfiguration(conf)).get();
   }
 

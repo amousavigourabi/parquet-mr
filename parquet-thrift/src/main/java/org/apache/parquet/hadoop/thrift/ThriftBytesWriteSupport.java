@@ -107,20 +107,20 @@ public class ThriftBytesWriteSupport extends WriteSupport<BytesWritable> {
   }
 
   public ThriftBytesWriteSupport(
-    Configuration configuration,
-    TProtocolFactory protocolFactory,
-    Class<? extends TBase<?, ?>> thriftClass,
-    boolean buffered,
-    FieldIgnoredHandler errorHandler) {
+      Configuration configuration,
+      TProtocolFactory protocolFactory,
+      Class<? extends TBase<?, ?>> thriftClass,
+      boolean buffered,
+      FieldIgnoredHandler errorHandler) {
     this(new HadoopParquetConfiguration(configuration), protocolFactory, thriftClass, buffered, errorHandler);
   }
 
   public ThriftBytesWriteSupport(
-    ParquetConfiguration configuration,
-    TProtocolFactory protocolFactory,
-    Class<? extends TBase<?, ?>> thriftClass,
-    boolean buffered,
-    FieldIgnoredHandler errorHandler) {
+      ParquetConfiguration configuration,
+      TProtocolFactory protocolFactory,
+      Class<? extends TBase<?, ?>> thriftClass,
+      boolean buffered,
+      FieldIgnoredHandler errorHandler) {
     super();
     this.configuration = configuration;
     this.protocolFactory = protocolFactory;

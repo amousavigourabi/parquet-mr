@@ -90,7 +90,7 @@ public class ParquetReadOptions {
     this(useSignedStringMinMax, useStatsFilter, useDictionaryFilter, useRecordFilter, useColumnIndexFilter,
       usePageChecksumVerification, useBloomFilter, useOffHeapDecryptBuffer, recordFilter, metadataFilter,
       codecFactory, allocator, maxAllocationSize, properties, fileDecryptionProperties,
-      new HadoopParquetConfiguration(new Configuration()));
+      new HadoopParquetConfiguration());
   }
 
   ParquetReadOptions(boolean useSignedStringMinMax,
@@ -202,7 +202,7 @@ public class ParquetReadOptions {
   }
 
   public static Builder builder() {
-    return new Builder(new HadoopParquetConfiguration(new Configuration()));
+    return new Builder(new HadoopParquetConfiguration());
   }
 
   public static Builder builder(ParquetConfiguration conf) {
@@ -229,7 +229,7 @@ public class ParquetReadOptions {
     protected ParquetConfiguration conf;
 
     public Builder() {
-      conf = new HadoopParquetConfiguration(new Configuration());
+      conf = new HadoopParquetConfiguration();
     }
 
     public Builder(ParquetConfiguration conf) {

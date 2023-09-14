@@ -128,8 +128,8 @@ public class AvroReadSupport<T> extends ReadSupport<T> {
 
   @Override
   public RecordMaterializer<T> prepareForRead(
-    Configuration configuration, Map<String, String> keyValueMetaData,
-    MessageType fileSchema, ReadContext readContext) {
+      Configuration configuration, Map<String, String> keyValueMetaData,
+      MessageType fileSchema, ReadContext readContext) {
     Map<String, String> metadata = readContext.getReadSupportMetadata();
     MessageType parquetSchema = readContext.getRequestedSchema();
     Schema avroSchema;
@@ -218,7 +218,7 @@ public class AvroReadSupport<T> extends ReadSupport<T> {
     }
 
     Class<? extends AvroDataSupplier> suppClass = conf.getClass(
-      AVRO_DATA_SUPPLIER, SpecificDataSupplier.class, AvroDataSupplier.class);
+        AVRO_DATA_SUPPLIER, SpecificDataSupplier.class, AvroDataSupplier.class);
     return ReflectionUtils.newInstance(suppClass, ConfigurationUtil.createHadoopConfiguration(conf)).get();
   }
 }

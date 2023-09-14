@@ -19,7 +19,13 @@
 package org.apache.parquet.hadoop;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.PrimitiveIterator;
+import java.util.Set;
 import java.util.stream.LongStream;
 
 import org.apache.hadoop.conf.Configuration;
@@ -166,6 +172,9 @@ class InternalParquetRecordReader<T> {
     ParquetConfiguration conf = Objects.requireNonNull(options).getConfiguration();
     for (String property : options.getPropertyNames()) {
       conf.set(property, options.getProperty(property));
+    }
+    for (Map.Entry<String, String> property : new Configuration()) {
+      conf.set(property.getKey(), property.getValue());
     }
 
     // initialize a ReadContext for this file

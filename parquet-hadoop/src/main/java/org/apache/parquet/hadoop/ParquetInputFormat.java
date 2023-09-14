@@ -209,7 +209,7 @@ public class ParquetInputFormat<T> extends FileInputFormat<Void, T> {
       return unboundRecordFilter;
     } catch (InstantiationException | IllegalAccessException e) {
       throw new BadConfigurationException(
-        "could not instantiate unbound record filter class", e);
+          "could not instantiate unbound record filter class", e);
     }
   }
 
@@ -218,12 +218,10 @@ public class ParquetInputFormat<T> extends FileInputFormat<Void, T> {
     if (clazz == null) { return null; }
 
     try {
-      UnboundRecordFilter unboundRecordFilter = (UnboundRecordFilter) clazz.newInstance();
-
-      return unboundRecordFilter;
+      return (UnboundRecordFilter) clazz.newInstance();
     } catch (InstantiationException | IllegalAccessException e) {
       throw new BadConfigurationException(
-        "could not instantiate unbound record filter class", e);
+          "could not instantiate unbound record filter class", e);
     }
   }
 

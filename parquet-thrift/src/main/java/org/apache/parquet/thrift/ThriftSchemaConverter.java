@@ -70,12 +70,12 @@ public class ThriftSchemaConverter {
   }
 
   public ThriftSchemaConverter(
-    Configuration configuration, FieldProjectionFilter fieldProjectionFilter) {
+      Configuration configuration, FieldProjectionFilter fieldProjectionFilter) {
     this(new HadoopParquetConfiguration(configuration), fieldProjectionFilter);
   }
 
   public ThriftSchemaConverter(
-    ParquetConfiguration configuration, FieldProjectionFilter fieldProjectionFilter) {
+      ParquetConfiguration configuration, FieldProjectionFilter fieldProjectionFilter) {
     this(fieldProjectionFilter);
     conf = configuration;
   }

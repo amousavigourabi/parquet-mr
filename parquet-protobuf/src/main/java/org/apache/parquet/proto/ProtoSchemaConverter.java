@@ -97,8 +97,8 @@ public class ProtoSchemaConverter {
    */
   public ProtoSchemaConverter(ParquetConfiguration config) {
     this(
-      config.getBoolean(ProtoWriteSupport.PB_SPECS_COMPLIANT_WRITE, false),
-      config.getInt(PB_MAX_RECURSION, 5));
+        config.getBoolean(ProtoWriteSupport.PB_SPECS_COMPLIANT_WRITE, false),
+        config.getInt(PB_MAX_RECURSION, 5));
   }
 
   /**

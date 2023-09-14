@@ -764,7 +764,7 @@ public class ParquetWriter<T> implements Closeable {
      */
     public SELF config(String property, String value) {
       if (conf == null) {
-        conf = new HadoopParquetConfiguration(new Configuration());
+        conf = new HadoopParquetConfiguration();
       }
       conf.set(property, value);
       return self();
@@ -778,17 +778,18 @@ public class ParquetWriter<T> implements Closeable {
      */
     public ParquetWriter<T> build() throws IOException {
       if (conf == null) {
-        conf = new HadoopParquetConfiguration(new Configuration());
+        conf = new HadoopParquetConfiguration();
       }
       if (file != null) {
         return new ParquetWriter<>(file,
             mode, getWriteSupport(conf), codecName, rowGroupSize, enableValidation, conf,
             maxPaddingSize, encodingPropsBuilder.build(), encryptionProperties);
+      } else {
+        return new ParquetWriter<>(HadoopOutputFile.fromPath(path, ConfigurationUtil.createHadoopConfiguration(conf)),
+            mode, getWriteSupport(conf), codecName,
+            rowGroupSize, enableValidation, conf, maxPaddingSize,
+            encodingPropsBuilder.build(), encryptionProperties);
       }
-      return new ParquetWriter<>(HadoopOutputFile.fromPath(path, ConfigurationUtil.createHadoopConfiguration(conf)),
-        mode, getWriteSupport(conf), codecName,
-        rowGroupSize, enableValidation, conf, maxPaddingSize,
-        encodingPropsBuilder.build(), encryptionProperties);
     }
   }
 }

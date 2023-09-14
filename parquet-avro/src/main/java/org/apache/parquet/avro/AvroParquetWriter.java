@@ -163,7 +163,7 @@ public class AvroParquetWriter<T> extends ParquetWriter<T> {
                                                   Schema avroSchema,
                                                   GenericData model) {
     return new AvroWriteSupport<T>(
-      new AvroSchemaConverter(conf).convert(avroSchema), avroSchema, model);
+        new AvroSchemaConverter(conf).convert(avroSchema), avroSchema, model);
   }
 
   public static class Builder<T> extends ParquetWriter.Builder<T, Builder<T>> {

@@ -128,8 +128,8 @@ class ProtoMessageConverter extends GroupConverter {
         validateProtoField(ignoreUnknownFields, protoDescriptor.toProto(), parquetField, protoField);
 
         converters[parquetFieldIndex] = protoField != null ?
-          newMessageConverter(myBuilder, protoField, parquetField) :
-          dummyScalarConverter(DUMMY_PVC, parquetField, conf, extraMetadata);
+            newMessageConverter(myBuilder, protoField, parquetField) :
+            dummyScalarConverter(DUMMY_PVC, parquetField, conf, extraMetadata);
 
         parquetFieldIndex++;
       }

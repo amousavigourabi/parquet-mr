@@ -94,11 +94,11 @@ public final class SerializationUtil {
     }
 
     byte[] bytes =
-      Base64.getMimeDecoder().decode(b64.getBytes(StandardCharsets.UTF_8));
+        Base64.getMimeDecoder().decode(b64.getBytes(StandardCharsets.UTF_8));
 
     try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-         GZIPInputStream gis = new GZIPInputStream(bais);
-         ObjectInputStream ois  = new ObjectInputStream(gis)) {
+           GZIPInputStream gis = new GZIPInputStream(bais);
+           ObjectInputStream ois  = new ObjectInputStream(gis)) {
       return (T) ois.readObject();
     } catch (ClassNotFoundException e) {
       throw new IOException("Could not read object from config with key " + key, e);

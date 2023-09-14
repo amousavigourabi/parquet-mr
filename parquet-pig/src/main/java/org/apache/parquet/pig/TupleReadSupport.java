@@ -193,7 +193,7 @@ public class TupleReadSupport extends ReadSupport<Tuple> {
       Map<String, String> keyValueMetaData,
       MessageType fileSchema,
       ReadContext readContext) {
-      MessageType requestedSchema = readContext.getRequestedSchema();
+    MessageType requestedSchema = readContext.getRequestedSchema();
     Schema requestedPigSchema = getPigSchema(configuration);
     if (requestedPigSchema == null) {
       throw new ParquetDecodingException("Missing Pig schema: ParquetLoader sets the schema in the job conf");

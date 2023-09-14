@@ -53,7 +53,7 @@ public abstract class AbstractThriftWriteSupport<T> extends WriteSupport<T> {
     configuration.set(PARQUET_THRIFT_CLASS, thriftClass.getName());
   }
 
-  public static Class<?> getGenericThriftClass(Configuration configuration) {
+  public static Class getGenericThriftClass(Configuration configuration) {
     return getGenericThriftClass(new HadoopParquetConfiguration(configuration));
   }
 
@@ -64,7 +64,9 @@ public abstract class AbstractThriftWriteSupport<T> extends WriteSupport<T> {
     }
 
     try {
-      return Class.forName(thriftClassName);
+      @SuppressWarnings("unchecked")
+      Class thriftClass = Class.forName(thriftClassName);
+      return thriftClass;
     } catch (ClassNotFoundException e) {
       throw new BadConfigurationException("the class "+thriftClassName+" in job conf at " + PARQUET_THRIFT_CLASS + " could not be found", e);
     }

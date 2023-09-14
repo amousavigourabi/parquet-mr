@@ -41,7 +41,7 @@ public class ConfigurationUtil {
       final Class<?> foundClass = configuration.getClassByName(className);
       if (!assignableFrom.isAssignableFrom(foundClass)) {
         throw new BadConfigurationException("class " + className + " set in job conf at "
-          + configName + " is not a subclass of " + assignableFrom.getCanonicalName());
+                + configName + " is not a subclass of " + assignableFrom.getCanonicalName());
       }
       return foundClass;
     } catch (ClassNotFoundException e) {

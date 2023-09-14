@@ -70,17 +70,17 @@ abstract public class ReadSupport<T> {
    */
   @Deprecated
   public ReadContext init(
-    Configuration configuration,
-    Map<String, String> keyValueMetaData,
-    MessageType fileSchema) {
+          Configuration configuration,
+          Map<String, String> keyValueMetaData,
+          MessageType fileSchema) {
     throw new UnsupportedOperationException("Override init(InitContext)");
   }
 
   @Deprecated
   public ReadContext init(
-    ParquetConfiguration configuration,
-    Map<String, String> keyValueMetaData,
-    MessageType fileSchema) {
+      ParquetConfiguration configuration,
+      Map<String, String> keyValueMetaData,
+      MessageType fileSchema) {
     throw new UnsupportedOperationException("Override init(InitContext)");
   }
 
@@ -105,16 +105,16 @@ abstract public class ReadSupport<T> {
    * @return the recordMaterializer that will materialize the records
    */
   abstract public RecordMaterializer<T> prepareForRead(
-    Configuration configuration,
-    Map<String, String> keyValueMetaData,
-    MessageType fileSchema,
-    ReadContext readContext);
+          Configuration configuration,
+          Map<String, String> keyValueMetaData,
+          MessageType fileSchema,
+          ReadContext readContext);
 
   abstract public RecordMaterializer<T> prepareForRead(
-    ParquetConfiguration configuration,
-    Map<String, String> keyValueMetaData,
-    MessageType fileSchema,
-    ReadContext readContext);
+      ParquetConfiguration configuration,
+      Map<String, String> keyValueMetaData,
+      MessageType fileSchema,
+      ReadContext readContext);
 
   /**
    * information to read the file

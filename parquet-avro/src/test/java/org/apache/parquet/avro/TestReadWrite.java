@@ -439,7 +439,7 @@ public class TestReadWrite {
       @Override
       public WriteContext init(ParquetConfiguration configuration) {
         return new WriteContext(MessageTypeParser.parseMessageType(TestAvroSchemaConverter.ALL_PARQUET_SCHEMA),
-          new HashMap<String, String>());
+            new HashMap<String, String>());
       }
 
       @Override
