@@ -215,8 +215,9 @@ public class ParquetInputFormat<T> extends FileInputFormat<Void, T> {
 
   private static UnboundRecordFilter getUnboundRecordFilterInstance(ParquetConfiguration configuration) {
     Class<?> clazz = ConfigurationUtil.getClassFromConfig(configuration, UNBOUND_RECORD_FILTER, UnboundRecordFilter.class);
-    if (clazz == null) { return null; }
-
+    if (clazz == null) {
+      return null;
+    }
     try {
       return (UnboundRecordFilter) clazz.newInstance();
     } catch (InstantiationException | IllegalAccessException e) {

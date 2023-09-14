@@ -43,6 +43,7 @@ import org.apache.parquet.filter.UnboundRecordFilter;
 import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.filter2.compat.FilterCompat.Filter;
 import org.apache.parquet.hadoop.api.ReadSupport;
+import org.apache.parquet.hadoop.util.ConfigurationUtil;
 import org.apache.parquet.hadoop.util.HadoopInputFile;
 import org.apache.parquet.HadoopReadOptions;
 import org.apache.parquet.hadoop.util.HiddenFileFilter;
@@ -375,20 +376,21 @@ public class ParquetReader<T> implements Closeable {
           .withAllocator(allocator)
           .build();
 
-      if (path != null && conf instanceof HadoopParquetConfiguration) {
-        FileSystem fs = path.getFileSystem(((HadoopParquetConfiguration) conf).getConfiguration());
+      if (path != null) {
+        Configuration hadoopConf = ConfigurationUtil.createHadoopConfiguration(conf);
+        FileSystem fs = path.getFileSystem(hadoopConf);
         FileStatus stat = fs.getFileStatus(path);
 
         if (stat.isFile()) {
           return new ParquetReader<>(
-              Collections.singletonList((InputFile) HadoopInputFile.fromStatus(stat, ((HadoopParquetConfiguration) conf).getConfiguration())),
+              Collections.singletonList((InputFile) HadoopInputFile.fromStatus(stat, hadoopConf)),
               options,
               getReadSupport());
 
         } else {
           List<InputFile> files = new ArrayList<>();
           for (FileStatus fileStatus : fs.listStatus(path, HiddenFileFilter.INSTANCE)) {
-            files.add(HadoopInputFile.fromStatus(fileStatus, ((HadoopParquetConfiguration) conf).getConfiguration()));
+            files.add(HadoopInputFile.fromStatus(fileStatus, hadoopConf));
           }
           return new ParquetReader<T>(files, options, getReadSupport());
         }

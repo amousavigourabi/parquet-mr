@@ -130,30 +130,7 @@ public class AvroReadSupport<T> extends ReadSupport<T> {
   public RecordMaterializer<T> prepareForRead(
       Configuration configuration, Map<String, String> keyValueMetaData,
       MessageType fileSchema, ReadContext readContext) {
-    Map<String, String> metadata = readContext.getReadSupportMetadata();
-    MessageType parquetSchema = readContext.getRequestedSchema();
-    Schema avroSchema;
-
-    if (metadata.get(AVRO_READ_SCHEMA_METADATA_KEY) != null) {
-      // use the Avro read schema provided by the user
-      avroSchema = new Schema.Parser().parse(metadata.get(AVRO_READ_SCHEMA_METADATA_KEY));
-    } else if (keyValueMetaData.get(AVRO_SCHEMA_METADATA_KEY) != null) {
-      // use the Avro schema from the file metadata if present
-      avroSchema = new Schema.Parser().parse(keyValueMetaData.get(AVRO_SCHEMA_METADATA_KEY));
-    } else if (keyValueMetaData.get(OLD_AVRO_SCHEMA_METADATA_KEY) != null) {
-      // use the Avro schema from the file metadata if present
-      avroSchema = new Schema.Parser().parse(keyValueMetaData.get(OLD_AVRO_SCHEMA_METADATA_KEY));
-    } else {
-      // default to converting the Parquet schema into an Avro schema
-      avroSchema = new AvroSchemaConverter(configuration).convert(parquetSchema);
-    }
-
-    GenericData model = getDataModel(configuration, avroSchema);
-    String compatEnabled = metadata.get(AvroReadSupport.AVRO_COMPATIBILITY);
-    if (compatEnabled != null && Boolean.valueOf(compatEnabled)) {
-      return newCompatMaterializer(parquetSchema, avroSchema, model);
-    }
-    return new AvroRecordMaterializer<T>(parquetSchema, avroSchema, model);
+    return prepareForRead(new HadoopParquetConfiguration(configuration), keyValueMetaData, fileSchema, readContext);
   }
 
   @Override
