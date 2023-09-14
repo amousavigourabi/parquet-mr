@@ -50,10 +50,13 @@ public class ConfigurationUtil {
   }
 
   public static Configuration createHadoopConfiguration(ParquetConfiguration conf) {
+    if (conf == null) {
+      return new Configuration();
+    }
     if (conf instanceof HadoopParquetConfiguration) {
       return ((HadoopParquetConfiguration) conf).getConfiguration();
     }
-    Configuration configuration = new Configuration(false);
+    Configuration configuration = new Configuration();
     for (Map.Entry<String, String> entry : conf) {
       configuration.set(entry.getKey(), entry.getValue());
     }

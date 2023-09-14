@@ -28,6 +28,14 @@ public class HadoopParquetConfiguration implements ParquetConfiguration {
 
   private final Configuration configuration;
 
+  public HadoopParquetConfiguration() {
+    this(true);
+  }
+
+  public HadoopParquetConfiguration(boolean loadDefaults) {
+    configuration = new Configuration(loadDefaults);
+  }
+
   public HadoopParquetConfiguration(Configuration conf) {
     configuration = conf;
   }

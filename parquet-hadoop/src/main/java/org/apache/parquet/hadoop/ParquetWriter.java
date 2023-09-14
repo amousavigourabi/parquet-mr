@@ -32,6 +32,7 @@ import org.apache.parquet.crypto.FileEncryptionProperties;
 import org.apache.parquet.hadoop.api.WriteSupport;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 import org.apache.parquet.hadoop.metadata.ParquetMetadata;
+import org.apache.parquet.hadoop.util.ConfigurationUtil;
 import org.apache.parquet.hadoop.util.HadoopOutputFile;
 import org.apache.parquet.io.OutputFile;
 import org.apache.parquet.schema.MessageType;
@@ -267,16 +268,16 @@ public class ParquetWriter<T> implements Closeable {
   }
 
   ParquetWriter(
-    OutputFile file,
-    ParquetFileWriter.Mode mode,
-    WriteSupport<T> writeSupport,
-    CompressionCodecName compressionCodecName,
-    long rowGroupSize,
-    boolean validating,
-    Configuration conf,
-    int maxPaddingSize,
-    ParquetProperties encodingProps,
-    FileEncryptionProperties encryptionProperties) throws IOException {
+      OutputFile file,
+      ParquetFileWriter.Mode mode,
+      WriteSupport<T> writeSupport,
+      CompressionCodecName compressionCodecName,
+      long rowGroupSize,
+      boolean validating,
+      Configuration conf,
+      int maxPaddingSize,
+      ParquetProperties encodingProps,
+      FileEncryptionProperties encryptionProperties) throws IOException {
     this(
       file,
       mode,
@@ -306,12 +307,11 @@ public class ParquetWriter<T> implements Closeable {
     MessageType schema = writeContext.getSchema();
 
     // encryptionProperties could be built from the implementation of EncryptionPropertiesFactory when it is attached.
-    if (encryptionProperties == null && conf instanceof HadoopParquetConfiguration) {
+    if (encryptionProperties == null) {
       String path = file == null ? null : file.getPath();
-      HadoopParquetConfiguration hadoopConf = ((HadoopParquetConfiguration) conf);
+      Configuration hadoopConf = ConfigurationUtil.createHadoopConfiguration(conf);
       encryptionProperties = ParquetOutputFormat.createEncryptionProperties(
-        hadoopConf.getConfiguration() == null ? new Configuration() : hadoopConf.getConfiguration(),
-        path == null ? null : new Path(path), writeContext);
+        hadoopConf, path == null ? null : new Path(path), writeContext);
     }
 
     ParquetFileWriter fileWriter = new ParquetFileWriter(
@@ -323,14 +323,14 @@ public class ParquetWriter<T> implements Closeable {
     this.codecFactory = new CodecFactory(conf, encodingProps.getPageSizeThreshold());
     CodecFactory.BytesCompressor compressor =	codecFactory.getCompressor(compressionCodecName);
     this.writer = new InternalParquetRecordWriter<T>(
-      fileWriter,
-      writeSupport,
-      schema,
-      writeContext.getExtraMetaData(),
-      rowGroupSize,
-      compressor,
-      validating,
-      encodingProps);
+        fileWriter,
+        writeSupport,
+        schema,
+        writeContext.getExtraMetaData(),
+        rowGroupSize,
+        compressor,
+        validating,
+        encodingProps);
   }
 
   public void write(T object) throws IOException {
@@ -784,17 +784,11 @@ public class ParquetWriter<T> implements Closeable {
         return new ParquetWriter<>(file,
             mode, getWriteSupport(conf), codecName, rowGroupSize, enableValidation, conf,
             maxPaddingSize, encodingPropsBuilder.build(), encryptionProperties);
-      } else if (conf instanceof HadoopParquetConfiguration && ((HadoopParquetConfiguration) conf).getConfiguration() != null) {
-        return new ParquetWriter<>(HadoopOutputFile.fromPath(path, ((HadoopParquetConfiguration) conf).getConfiguration()),
-            mode, getWriteSupport(conf), codecName,
-            rowGroupSize, enableValidation, conf, maxPaddingSize,
-            encodingPropsBuilder.build(), encryptionProperties);
-      } else {
-        return new ParquetWriter<>(HadoopOutputFile.fromPath(path, new Configuration()),
-          mode, getWriteSupport(conf), codecName,
-          rowGroupSize, enableValidation, conf, maxPaddingSize,
-          encodingPropsBuilder.build(), encryptionProperties);
       }
+      return new ParquetWriter<>(HadoopOutputFile.fromPath(path, ConfigurationUtil.createHadoopConfiguration(conf)),
+        mode, getWriteSupport(conf), codecName,
+        rowGroupSize, enableValidation, conf, maxPaddingSize,
+        encodingPropsBuilder.build(), encryptionProperties);
     }
   }
 }

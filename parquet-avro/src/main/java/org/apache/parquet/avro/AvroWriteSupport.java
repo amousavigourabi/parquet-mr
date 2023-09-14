@@ -37,6 +37,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.conf.HadoopParquetConfiguration;
 import org.apache.parquet.conf.ParquetConfiguration;
 import org.apache.parquet.hadoop.api.WriteSupport;
+import org.apache.parquet.hadoop.util.ConfigurationUtil;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.RecordConsumer;
 import org.apache.parquet.schema.GroupType;
@@ -45,7 +46,6 @@ import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.Type;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.parquet.Preconditions;
-import org.apache.parquet.util.Reflection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -435,12 +435,7 @@ public class AvroWriteSupport<T> extends WriteSupport<T> {
 
     Class<? extends AvroDataSupplier> suppClass = conf.getClass(
       AVRO_DATA_SUPPLIER, SpecificDataSupplier.class, AvroDataSupplier.class);
-    if (conf instanceof HadoopParquetConfiguration) {
-      HadoopParquetConfiguration hadoopConf = (HadoopParquetConfiguration) conf;
-      return ReflectionUtils.newInstance(suppClass, hadoopConf.getConfiguration() == null ? new Configuration() : hadoopConf.getConfiguration()).get();
-    } else {
-      return Reflection.newInstance(suppClass).get();
-    }
+    return ReflectionUtils.newInstance(suppClass, ConfigurationUtil.createHadoopConfiguration(conf)).get();
   }
 
   private abstract class ListWriter {
