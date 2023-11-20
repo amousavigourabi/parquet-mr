@@ -587,6 +587,7 @@
               <ignoreNonCompile>true</ignoreNonCompile>
               <ignoredDependencies>
                 <ignoredDependency>org.lz4:lz4-java:jar:${lz4.version}</ignoredDependency>
+                <ignoredDependency>com.github.luben:zstd-jni:jar:${zstd-jni.version}</ignoredDependency>
               </ignoredDependencies>
             </configuration>
           </execution>
