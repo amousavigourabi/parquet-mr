@@ -303,6 +303,32 @@ public class ParquetWriter<T> implements Closeable {
       int maxPaddingSize,
       ParquetProperties encodingProps,
       FileEncryptionProperties encryptionProperties) throws IOException {
+    this(
+      file,
+      mode,
+      writeSupport,
+      compressionCodecName,
+      new CodecFactory(conf, encodingProps.getPageSizeThreshold()),
+      rowGroupSize,
+      validating,
+      conf,
+      maxPaddingSize,
+      encodingProps,
+      encryptionProperties);
+  }
+
+  ParquetWriter(
+    OutputFile file,
+    ParquetFileWriter.Mode mode,
+    WriteSupport<T> writeSupport,
+    CompressionCodecName compressionCodecName,
+    CompressionCodecFactory codecFactory,
+    long rowGroupSize,
+    boolean validating,
+    ParquetConfiguration conf,
+    int maxPaddingSize,
+    ParquetProperties encodingProps,
+    FileEncryptionProperties encryptionProperties) throws IOException {
 
     WriteSupport.WriteContext writeContext = writeSupport.init(conf);
     MessageType schema = writeContext.getSchema();
@@ -321,17 +347,17 @@ public class ParquetWriter<T> implements Closeable {
       encodingProps.getPageWriteChecksumEnabled(), encryptionProperties);
     fileWriter.start();
 
-    this.codecFactory = new CodecFactory(conf, encodingProps.getPageSizeThreshold());
+    this.codecFactory = codecFactory;
     CompressionCodecFactory.BytesInputCompressor compressor = codecFactory.getCompressor(compressionCodecName);
     this.writer = new InternalParquetRecordWriter<T>(
-        fileWriter,
-        writeSupport,
-        schema,
-        writeContext.getExtraMetaData(),
-        rowGroupSize,
-        compressor,
-        validating,
-        encodingProps);
+      fileWriter,
+      writeSupport,
+      schema,
+      writeContext.getExtraMetaData(),
+      rowGroupSize,
+      compressor,
+      validating,
+      encodingProps);
   }
 
   public void write(T object) throws IOException {
@@ -384,6 +410,7 @@ public class ParquetWriter<T> implements Closeable {
     private ParquetConfiguration conf = null;
     private ParquetFileWriter.Mode mode;
     private CompressionCodecName codecName = DEFAULT_COMPRESSION_CODEC_NAME;
+    private CompressionCodecFactory codecFactory = null;
     private long rowGroupSize = DEFAULT_BLOCK_SIZE;
     private int maxPaddingSize = MAX_PADDING_SIZE_DEFAULT;
     private boolean enableValidation = DEFAULT_IS_VALIDATING_ENABLED;
@@ -460,6 +487,18 @@ public class ParquetWriter<T> implements Closeable {
      */
     public SELF withCompressionCodec(CompressionCodecName codecName) {
       this.codecName = codecName;
+      return self();
+    }
+
+    /**
+     * Set the {@link CompressionCodecFactory codec factory} used by the
+     * constructed writer.
+     *
+     * @param codecFactory a {@link CompressionCodecFactory}
+     * @return this builder for method chaining.
+     */
+    public SELF withCodecFactory(CompressionCodecFactory codecFactory) {
+      this.codecFactory = codecFactory;
       return self();
     }
 
@@ -783,15 +822,19 @@ public class ParquetWriter<T> implements Closeable {
       if (conf == null) {
         conf = new HadoopParquetConfiguration();
       }
+      ParquetProperties encodingProps = encodingPropsBuilder.build();
+      if (codecFactory == null) {
+        codecFactory = new CodecFactory(conf, encodingProps.getPageSizeThreshold());
+      }
       if (file != null) {
         return new ParquetWriter<>(file,
             mode, getWriteSupport(conf), codecName, rowGroupSize, enableValidation, conf,
-            maxPaddingSize, encodingPropsBuilder.build(), encryptionProperties);
+            maxPaddingSize, encodingProps, encryptionProperties);
       } else {
         return new ParquetWriter<>(HadoopOutputFile.fromPath(path, ConfigurationUtil.createHadoopConfiguration(conf)),
             mode, getWriteSupport(conf), codecName,
             rowGroupSize, enableValidation, conf, maxPaddingSize,
-            encodingPropsBuilder.build(), encryptionProperties);
+          encodingProps, encryptionProperties);
       }
     }
   }

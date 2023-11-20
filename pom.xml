@@ -104,6 +104,10 @@
     <jsr305.version>3.0.2</jsr305.version>
     <commons-lang3.version>3.12.0</commons-lang3.version>
 
+    <!-- parquet-common dependencies -->
+    <compress.version>1.25.0</compress.version>
+    <lz4.version>1.8.0</lz4.version>
+
     <!-- properties for the profiles -->
     <surefire.argLine> </surefire.argLine>
     <surefire.logLevel>INFO</surefire.logLevel>
@@ -554,6 +558,7 @@
               <exclude>org.apache.parquet.hadoop.thrift.TBaseWriteSupport#setThriftClass(org.apache.parquet.conf.ParquetConfiguration,java.lang.Class)</exclude>
               <exclude>org.apache.parquet.proto.ProtoParquetReader#builder(org.apache.hadoop.fs.Path,boolean)</exclude>
               <exclude>org.apache.parquet.proto.ProtoParquetReader#builder(org.apache.parquet.io.InputFile,boolean)</exclude>
+              <exclude>org.apache.parquet.util.Reflection#newInstance(java.lang.Class,org.apache.parquet.conf.ParquetConfiguration)</exclude>
 
               <!-- Due to the removal of deprecated methods -->
               <exclude>org.apache.parquet.arrow.schema.SchemaMapping</exclude>
@@ -580,6 +585,9 @@
             <configuration>
               <failOnWarning>true</failOnWarning>
               <ignoreNonCompile>true</ignoreNonCompile>
+              <ignoredDependencies>
+                <ignoredDependency>org.lz4:lz4-java:jar:${lz4.version}</ignoredDependency>
+              </ignoredDependencies>
             </configuration>
           </execution>
         </executions>

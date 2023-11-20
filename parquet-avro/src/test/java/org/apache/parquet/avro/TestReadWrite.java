@@ -52,6 +52,8 @@ import org.apache.avro.generic.GenericRecordBuilder;
 import org.apache.avro.util.Utf8;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.parquet.column.ParquetProperties;
+import org.apache.parquet.compression.SimpleCompressionCodecFactory;
 import org.apache.parquet.conf.HadoopParquetConfiguration;
 import org.apache.parquet.conf.ParquetConfiguration;
 import org.apache.parquet.conf.PlainParquetConfiguration;
@@ -77,40 +79,90 @@ import static org.junit.Assert.assertNotNull;
 @RunWith(Parameterized.class)
 public class TestReadWrite {
 
+  enum Converters {
+    COMPATIBLE(true),
+    NEW(false);
+
+    final boolean compat;
+
+    Converters(boolean compatible) {
+      compat = compatible;
+    }
+
+    public boolean isCompatible() {
+      return compat;
+    }
+  }
+
+  enum FileLocation {
+    LOCAL,
+    HADOOP
+  }
+
+  enum ConfigurationType {
+    HADOOP_CONFIGURATION,
+    HADOOP_PARQUET_INTERFACE,
+    PLAIN_PARQUET_INTERFACE
+  }
+
+  enum CodecFactory {
+    HADOOP_CODECS,
+    SIMPLE_CODECS_ALL,
+    SIMPLE_CODEC_WRITES,
+    SIMPLE_CODEC_READS
+  }
+
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     Object[][] data = new Object[][] {
-        { true, false, false, false },   // use the old converters with hadoop config
-        { true, false, true, false },    // use the old converters with parquet config interface
-        { false, false, false, false },  // use the new converters with hadoop config
-        { false, true, false, false },   // use a local disk location with hadoop config
-        { false, false, true, false },   // use the new converters with parquet config interface
-        { false, true, true, false },    // use a local disk location with parquet config interface
-        { false, false, true, true },    // use the new converters with plain parquet config
-        { false, true, true, true } };   // use a local disk location with plain parquet config
+      { Converters.COMPATIBLE, FileLocation.HADOOP, ConfigurationType.HADOOP_CONFIGURATION, CodecFactory.HADOOP_CODECS },
+      { Converters.COMPATIBLE, FileLocation.HADOOP, ConfigurationType.HADOOP_PARQUET_INTERFACE, CodecFactory.HADOOP_CODECS },
+      { Converters.NEW, FileLocation.HADOOP, ConfigurationType.HADOOP_CONFIGURATION, CodecFactory.HADOOP_CODECS },
+      { Converters.NEW, FileLocation.LOCAL, ConfigurationType.HADOOP_CONFIGURATION, CodecFactory.HADOOP_CODECS },
+      { Converters.NEW, FileLocation.HADOOP, ConfigurationType.HADOOP_PARQUET_INTERFACE, CodecFactory.HADOOP_CODECS },
+      { Converters.NEW, FileLocation.LOCAL, ConfigurationType.HADOOP_PARQUET_INTERFACE, CodecFactory.HADOOP_CODECS },
+      { Converters.NEW, FileLocation.HADOOP, ConfigurationType.PLAIN_PARQUET_INTERFACE, CodecFactory.HADOOP_CODECS },
+      { Converters.NEW, FileLocation.LOCAL, ConfigurationType.PLAIN_PARQUET_INTERFACE, CodecFactory.HADOOP_CODECS },
+      { Converters.COMPATIBLE, FileLocation.HADOOP, ConfigurationType.HADOOP_PARQUET_INTERFACE, CodecFactory.SIMPLE_CODECS_ALL },
+      { Converters.NEW, FileLocation.HADOOP, ConfigurationType.HADOOP_PARQUET_INTERFACE, CodecFactory.SIMPLE_CODECS_ALL },
+      { Converters.NEW, FileLocation.LOCAL, ConfigurationType.HADOOP_PARQUET_INTERFACE, CodecFactory.SIMPLE_CODECS_ALL },
+      { Converters.NEW, FileLocation.HADOOP, ConfigurationType.PLAIN_PARQUET_INTERFACE, CodecFactory.SIMPLE_CODECS_ALL },
+      { Converters.NEW, FileLocation.LOCAL, ConfigurationType.PLAIN_PARQUET_INTERFACE, CodecFactory.SIMPLE_CODECS_ALL },
+      { Converters.COMPATIBLE, FileLocation.HADOOP, ConfigurationType.HADOOP_PARQUET_INTERFACE, CodecFactory.SIMPLE_CODEC_READS },
+      { Converters.NEW, FileLocation.HADOOP, ConfigurationType.HADOOP_PARQUET_INTERFACE, CodecFactory.SIMPLE_CODEC_READS },
+      { Converters.NEW, FileLocation.LOCAL, ConfigurationType.HADOOP_PARQUET_INTERFACE, CodecFactory.SIMPLE_CODEC_READS },
+      { Converters.NEW, FileLocation.HADOOP, ConfigurationType.PLAIN_PARQUET_INTERFACE, CodecFactory.SIMPLE_CODEC_READS },
+      { Converters.NEW, FileLocation.LOCAL, ConfigurationType.PLAIN_PARQUET_INTERFACE, CodecFactory.SIMPLE_CODEC_READS },
+      { Converters.COMPATIBLE, FileLocation.HADOOP, ConfigurationType.HADOOP_PARQUET_INTERFACE, CodecFactory.SIMPLE_CODEC_WRITES },
+      { Converters.NEW, FileLocation.HADOOP, ConfigurationType.HADOOP_PARQUET_INTERFACE, CodecFactory.SIMPLE_CODEC_WRITES },
+      { Converters.NEW, FileLocation.LOCAL, ConfigurationType.HADOOP_PARQUET_INTERFACE, CodecFactory.SIMPLE_CODEC_WRITES },
+      { Converters.NEW, FileLocation.HADOOP, ConfigurationType.PLAIN_PARQUET_INTERFACE, CodecFactory.SIMPLE_CODEC_WRITES },
+      { Converters.NEW, FileLocation.LOCAL, ConfigurationType.PLAIN_PARQUET_INTERFACE, CodecFactory.SIMPLE_CODEC_WRITES }
+    };
     return Arrays.asList(data);
   }
 
-  private final boolean compat;
-  private final boolean local;
-  private final boolean confInterface;
-  private final boolean plainConf;
+  private final Converters converter;
+  private final FileLocation fileLocation;
+  private final ConfigurationType conf;
+  private final CodecFactory codecType;
+
   private final Configuration testConf = new Configuration();
   private final ParquetConfiguration hadoopConfWithInterface = new HadoopParquetConfiguration();
   private final ParquetConfiguration plainParquetConf = new PlainParquetConfiguration();
 
-  public TestReadWrite(boolean compat, boolean local, boolean confInterface, boolean plainConf) {
-    this.compat = compat;
-    this.local = local;
-    this.confInterface = confInterface;
-    this.plainConf = plainConf;
-    this.testConf.setBoolean(AvroReadSupport.AVRO_COMPATIBILITY, compat);
+  public TestReadWrite(Converters converter, FileLocation fileLocation, ConfigurationType conf, CodecFactory codecs) {
+    this.converter = converter;
+    this.fileLocation = fileLocation;
+    this.conf = conf;
+    this.codecType = codecs;
+    this.testConf.setBoolean(AvroReadSupport.AVRO_COMPATIBILITY, converter.isCompatible());
     this.testConf.setBoolean("parquet.avro.add-list-element-records", false);
     this.testConf.setBoolean("parquet.avro.write-old-list-structure", false);
-    this.hadoopConfWithInterface.setBoolean(AvroReadSupport.AVRO_COMPATIBILITY, compat);
+    this.hadoopConfWithInterface.setBoolean(AvroReadSupport.AVRO_COMPATIBILITY, converter.isCompatible());
     this.hadoopConfWithInterface.setBoolean("parquet.avro.add-list-element-records", false);
     this.hadoopConfWithInterface.setBoolean("parquet.avro.write-old-list-structure", false);
-    this.plainParquetConf.setBoolean(AvroReadSupport.AVRO_COMPATIBILITY, compat);
+    this.plainParquetConf.setBoolean(AvroReadSupport.AVRO_COMPATIBILITY, converter.isCompatible());
     this.plainParquetConf.setBoolean("parquet.avro.add-list-element-records", false);
     this.plainParquetConf.setBoolean("parquet.avro.write-old-list-structure", false);
   }
@@ -416,7 +468,7 @@ public class TestReadWrite {
       nextRecord = reader.read();
     }
 
-    Object expectedEnumSymbol = compat ? "a" :
+    Object expectedEnumSymbol = converter.isCompatible() ? "a" :
         new GenericData.EnumSymbol(schema.getField("myenum").schema(), "a");
 
     assertNotNull(nextRecord);
@@ -890,7 +942,7 @@ public class TestReadWrite {
 
   private ParquetWriter<GenericRecord> writer(String file, Schema schema) throws IOException {
     AvroParquetWriter.Builder<GenericRecord> writerBuilder;
-    if (local) {
+    if (fileLocation == FileLocation.LOCAL) {
       writerBuilder = AvroParquetWriter
         .<GenericRecord>builder(new LocalOutputFile(Paths.get(file)))
         .withSchema(schema);
@@ -899,12 +951,18 @@ public class TestReadWrite {
         .<GenericRecord>builder(new Path(file))
         .withSchema(schema);
     }
-    if (confInterface) {
-      if (plainConf) {
+    if (conf == ConfigurationType.PLAIN_PARQUET_INTERFACE || conf == ConfigurationType.HADOOP_PARQUET_INTERFACE) {
+      if (conf == ConfigurationType.PLAIN_PARQUET_INTERFACE) {
+        if (codecType == CodecFactory.SIMPLE_CODECS_ALL || codecType == CodecFactory.SIMPLE_CODEC_WRITES) {
+          writerBuilder = writerBuilder.withCodecFactory(new SimpleCompressionCodecFactory(hadoopConfWithInterface, ParquetProperties.DEFAULT_PAGE_SIZE));
+        }
         return writerBuilder
           .withConf(hadoopConfWithInterface)
           .build();
       } else {
+        if (codecType == CodecFactory.SIMPLE_CODECS_ALL || codecType == CodecFactory.SIMPLE_CODEC_WRITES) {
+          writerBuilder = writerBuilder.withCodecFactory(new SimpleCompressionCodecFactory(plainParquetConf, ParquetProperties.DEFAULT_PAGE_SIZE));
+        }
         return writerBuilder
           .withConf(plainParquetConf)
           .build();
@@ -918,19 +976,25 @@ public class TestReadWrite {
 
   private ParquetReader<GenericRecord> reader(String file) throws IOException {
     AvroParquetReader.Builder<GenericRecord> readerBuilder;
-    if (local) {
+    if (fileLocation == FileLocation.LOCAL) {
       readerBuilder = AvroParquetReader
         .<GenericRecord>builder(new LocalInputFile(Paths.get(file)))
         .withDataModel(GenericData.get());
     } else {
       return new AvroParquetReader<>(testConf, new Path(file));
     }
-    if (confInterface) {
-      if (plainConf) {
+    if (conf == ConfigurationType.PLAIN_PARQUET_INTERFACE || conf == ConfigurationType.HADOOP_PARQUET_INTERFACE) {
+      if (conf == ConfigurationType.PLAIN_PARQUET_INTERFACE) {
+        if (codecType == CodecFactory.SIMPLE_CODECS_ALL || codecType == CodecFactory.SIMPLE_CODEC_READS) {
+          readerBuilder = (AvroParquetReader.Builder<GenericRecord>) readerBuilder.withCodecFactory(new SimpleCompressionCodecFactory(hadoopConfWithInterface, ParquetProperties.DEFAULT_PAGE_SIZE));
+        }
         return readerBuilder
           .withConf(hadoopConfWithInterface)
           .build();
       } else {
+        if (codecType == CodecFactory.SIMPLE_CODECS_ALL || codecType == CodecFactory.SIMPLE_CODEC_READS) {
+          readerBuilder = (AvroParquetReader.Builder<GenericRecord>) readerBuilder.withCodecFactory(new SimpleCompressionCodecFactory(plainParquetConf, ParquetProperties.DEFAULT_PAGE_SIZE));
+        }
         return readerBuilder
           .withConf(plainParquetConf)
           .build();
@@ -946,6 +1010,6 @@ public class TestReadWrite {
    * Return a String or Utf8 depending on whether compatibility is on
    */
   public CharSequence str(String value) {
-    return compat ? value : new Utf8(value);
+    return converter.isCompatible() ? value : new Utf8(value);
   }
 }

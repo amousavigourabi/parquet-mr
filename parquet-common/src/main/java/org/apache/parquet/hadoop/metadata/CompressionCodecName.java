@@ -24,14 +24,14 @@ import org.apache.parquet.hadoop.codec.CompressionCodecNotSupportedException;
 import java.util.Locale;
 
 public enum CompressionCodecName {
-  UNCOMPRESSED(null, CompressionCodec.UNCOMPRESSED, ""),
-  SNAPPY("org.apache.parquet.hadoop.codec.SnappyCodec", CompressionCodec.SNAPPY, ".snappy"),
-  GZIP("org.apache.hadoop.io.compress.GzipCodec", CompressionCodec.GZIP, ".gz"),
-  LZO("com.hadoop.compression.lzo.LzoCodec", CompressionCodec.LZO, ".lzo"),
-  BROTLI("org.apache.hadoop.io.compress.BrotliCodec", CompressionCodec.BROTLI, ".br"),
-  LZ4("org.apache.hadoop.io.compress.Lz4Codec", CompressionCodec.LZ4, ".lz4hadoop"),
-  ZSTD("org.apache.parquet.hadoop.codec.ZstandardCodec", CompressionCodec.ZSTD, ".zstd"),
-  LZ4_RAW("org.apache.parquet.hadoop.codec.Lz4RawCodec", CompressionCodec.LZ4_RAW, ".lz4raw");
+  UNCOMPRESSED(null, null, CompressionCodec.UNCOMPRESSED, ""),
+  SNAPPY("org.apache.parquet.hadoop.codec.SnappyCodec", "org.apache.parquet.compression.codec.SnappyCodec", CompressionCodec.SNAPPY, ".snappy"),
+  GZIP("org.apache.hadoop.io.compress.GzipCodec", "org.apache.parquet.compression.codec.GzipCodec", CompressionCodec.GZIP, ".gz"),
+  LZO("com.hadoop.compression.lzo.LzoCodec", "org.apache.parquet.compression.codec.LzoCodec", CompressionCodec.LZO, ".lzo"),
+  BROTLI("org.apache.hadoop.io.compress.BrotliCodec", "org.apache.parquet.compression.codec.BrotliCodec", CompressionCodec.BROTLI, ".br"),
+  LZ4("org.apache.hadoop.io.compress.Lz4Codec", "org.apache.parquet.compression.codec.Lz4Codec", CompressionCodec.LZ4, ".lz4hadoop"),
+  ZSTD("org.apache.parquet.hadoop.codec.ZstandardCodec", "org.apache.parquet.compression.codec.ZstandardCodec", CompressionCodec.ZSTD, ".zstd"),
+  LZ4_RAW("org.apache.parquet.hadoop.codec.Lz4RawCodec", "org.apache.parquet.compression.codec.Lz4RawCodec", CompressionCodec.LZ4_RAW, ".lz4raw");
 
   public static CompressionCodecName fromConf(String name) {
      if (name == null) {
@@ -63,11 +63,13 @@ public enum CompressionCodecName {
   }
 
   private final String hadoopCompressionCodecClass;
+  private final String simpleCompressionCodecClass;
   private final CompressionCodec parquetCompressionCodec;
   private final String extension;
 
-  private CompressionCodecName(String hadoopCompressionCodecClass, CompressionCodec parquetCompressionCodec, String extension) {
+  private CompressionCodecName(String hadoopCompressionCodecClass, String simpleCompressionCodecClass, CompressionCodec parquetCompressionCodec, String extension) {
     this.hadoopCompressionCodecClass = hadoopCompressionCodecClass;
+    this.simpleCompressionCodecClass = simpleCompressionCodecClass;
     this.parquetCompressionCodec = parquetCompressionCodec;
     this.extension = extension;
   }
@@ -76,7 +78,11 @@ public enum CompressionCodecName {
     return hadoopCompressionCodecClass;
   }
 
-  public Class getHadoopCompressionCodecClass() {
+  public String getSimpleCompressionCodecClassName() {
+    return simpleCompressionCodecClass;
+  }
+
+  public Class<?> getHadoopCompressionCodecClass() {
     String codecClassName = getHadoopCompressionCodecClassName();
     if (codecClassName==null) {
       return null;
