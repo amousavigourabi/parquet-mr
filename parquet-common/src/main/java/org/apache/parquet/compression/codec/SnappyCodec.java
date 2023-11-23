@@ -18,9 +18,6 @@
  */
 package org.apache.parquet.compression.codec;
 
-import org.apache.commons.compress.compressors.lz77support.Parameters;
-import org.apache.commons.compress.compressors.snappy.SnappyCompressorInputStream;
-import org.apache.commons.compress.compressors.snappy.SnappyCompressorOutputStream;
 import org.apache.parquet.bytes.ByteBufferInputStream;
 import org.apache.parquet.conf.ParquetConfiguration;
 
@@ -29,6 +26,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ * Simple streaming Snappy codec implementation.
+ */
 public class SnappyCodec implements CompressionCodec {
 
   private final static String BUFFER_SIZE_CONFIG = "io.file.buffer.size";
@@ -37,13 +37,12 @@ public class SnappyCodec implements CompressionCodec {
 
   @Override
   public InputStream createInputStream(ByteBufferInputStream inputStream) throws IOException {
-    return new SnappyCompressorInputStream(inputStream);
+    throw new CodecNotYetImplementedException("Snappy decompression is not yet supported by this CompressionCodecFactory implementation.");
   }
 
   @Override
   public OutputStream createOutputStream(ByteArrayOutputStream compressedOutBuffer) throws IOException {
-    Parameters parameters = SnappyCompressorOutputStream.createParameterBuilder(bufferSize).build();
-    return new SnappyCompressorOutputStream(compressedOutBuffer, compressedOutBuffer.size(), parameters);
+    throw new CodecNotYetImplementedException("Snappy compression is not yet supported by this CompressionCodecFactory implementation.");
   }
 
   @Override

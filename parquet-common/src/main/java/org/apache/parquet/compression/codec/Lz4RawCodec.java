@@ -18,8 +18,6 @@
  */
 package org.apache.parquet.compression.codec;
 
-import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorInputStream;
-import org.apache.commons.compress.compressors.lz4.BlockLZ4CompressorOutputStream;
 import org.apache.parquet.bytes.ByteBufferInputStream;
 import org.apache.parquet.conf.ParquetConfiguration;
 
@@ -28,16 +26,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ * Simple streaming LZ4raw codec implementation.
+ */
 public class Lz4RawCodec implements CompressionCodec {
 
   @Override
   public InputStream createInputStream(ByteBufferInputStream inputStream) throws IOException {
-    return new BlockLZ4CompressorInputStream(inputStream);
+    throw new CodecNotYetImplementedException("LZ4raw decompression is not yet supported by this CompressionCodecFactory implementation.");
   }
 
   @Override
   public OutputStream createOutputStream(ByteArrayOutputStream compressedOutBuffer) throws IOException {
-    return new BlockLZ4CompressorOutputStream(compressedOutBuffer);
+    throw new CodecNotYetImplementedException("LZ4raw compression is not yet supported by this CompressionCodecFactory implementation.");
   }
 
   @Override

@@ -18,7 +18,6 @@
  */
 package org.apache.parquet.compression.codec;
 
-import org.apache.commons.compress.compressors.zstandard.ZstdCompressorOutputStream;
 import org.apache.parquet.bytes.ByteBufferInputStream;
 import org.apache.parquet.conf.ParquetConfiguration;
 
@@ -27,7 +26,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class ZstandardCodec implements CompressionCodec {
+/**
+ * Simple streaming ZSTD codec implementation.
+ */
+public class ZstdCodec implements CompressionCodec {
 
   private final static String PARQUET_COMPRESS_ZSTD_BUFFERPOOL_ENABLED = "parquet.compression.codec.zstd.bufferPool.enabled";
   private final static String PARQUET_COMPRESS_ZSTD_LEVEL = "parquet.compression.codec.zstd.level";
@@ -42,7 +44,7 @@ public class ZstandardCodec implements CompressionCodec {
 
   @Override
   public OutputStream createOutputStream(ByteArrayOutputStream compressedOutBuffer) throws IOException {
-    return new ZstdCompressorOutputStream(compressedOutBuffer, level);
+    throw new CodecNotYetImplementedException("ZSTD compression is not yet supported by this CompressionCodecFactory implementation.");
   }
 
   @Override

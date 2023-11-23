@@ -25,13 +25,13 @@ import java.util.Locale;
 
 public enum CompressionCodecName {
   UNCOMPRESSED(null, null, CompressionCodec.UNCOMPRESSED, ""),
-  SNAPPY("org.apache.parquet.hadoop.codec.SnappyCodec", "org.apache.parquet.compression.codec.SnappyCodec", CompressionCodec.SNAPPY, ".snappy"),
-  GZIP("org.apache.hadoop.io.compress.GzipCodec", "org.apache.parquet.compression.codec.GzipCodec", CompressionCodec.GZIP, ".gz"),
-  LZO("com.hadoop.compression.lzo.LzoCodec", "org.apache.parquet.compression.codec.LzoCodec", CompressionCodec.LZO, ".lzo"),
-  BROTLI("org.apache.hadoop.io.compress.BrotliCodec", "org.apache.parquet.compression.codec.BrotliCodec", CompressionCodec.BROTLI, ".br"),
-  LZ4("org.apache.hadoop.io.compress.Lz4Codec", "org.apache.parquet.compression.codec.Lz4Codec", CompressionCodec.LZ4, ".lz4hadoop"),
-  ZSTD("org.apache.parquet.hadoop.codec.ZstandardCodec", "org.apache.parquet.compression.codec.ZstandardCodec", CompressionCodec.ZSTD, ".zstd"),
-  LZ4_RAW("org.apache.parquet.hadoop.codec.Lz4RawCodec", "org.apache.parquet.compression.codec.Lz4RawCodec", CompressionCodec.LZ4_RAW, ".lz4raw");
+  SNAPPY("org.apache.parquet.hadoop.codec.SnappyCodec", org.apache.parquet.compression.codec.SnappyCodec.class, CompressionCodec.SNAPPY, ".snappy"),
+  GZIP("org.apache.hadoop.io.compress.GzipCodec", org.apache.parquet.compression.codec.GzipCodec.class, CompressionCodec.GZIP, ".gz"),
+  LZO("com.hadoop.compression.lzo.LzoCodec", org.apache.parquet.compression.codec.LzoCodec.class, CompressionCodec.LZO, ".lzo"),
+  BROTLI("org.apache.hadoop.io.compress.BrotliCodec", org.apache.parquet.compression.codec.BrotliCodec.class, CompressionCodec.BROTLI, ".br"),
+  LZ4("org.apache.hadoop.io.compress.Lz4Codec", org.apache.parquet.compression.codec.Lz4Codec.class, CompressionCodec.LZ4, ".lz4hadoop"),
+  ZSTD("org.apache.parquet.hadoop.codec.ZstandardCodec", org.apache.parquet.compression.codec.ZstdCodec.class, CompressionCodec.ZSTD, ".zstd"),
+  LZ4_RAW("org.apache.parquet.hadoop.codec.Lz4RawCodec", org.apache.parquet.compression.codec.Lz4RawCodec.class, CompressionCodec.LZ4_RAW, ".lz4raw");
 
   public static CompressionCodecName fromConf(String name) {
      if (name == null) {
@@ -63,11 +63,11 @@ public enum CompressionCodecName {
   }
 
   private final String hadoopCompressionCodecClass;
-  private final String simpleCompressionCodecClass;
+  private final Class<?> simpleCompressionCodecClass;
   private final CompressionCodec parquetCompressionCodec;
   private final String extension;
 
-  private CompressionCodecName(String hadoopCompressionCodecClass, String simpleCompressionCodecClass, CompressionCodec parquetCompressionCodec, String extension) {
+  private CompressionCodecName(String hadoopCompressionCodecClass, Class<?> simpleCompressionCodecClass, CompressionCodec parquetCompressionCodec, String extension) {
     this.hadoopCompressionCodecClass = hadoopCompressionCodecClass;
     this.simpleCompressionCodecClass = simpleCompressionCodecClass;
     this.parquetCompressionCodec = parquetCompressionCodec;
@@ -78,7 +78,7 @@ public enum CompressionCodecName {
     return hadoopCompressionCodecClass;
   }
 
-  public String getSimpleCompressionCodecClassName() {
+  public Class<?> getSimpleCompressionCodecClass() {
     return simpleCompressionCodecClass;
   }
 

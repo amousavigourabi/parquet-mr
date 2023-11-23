@@ -18,7 +18,6 @@
  */
 package org.apache.parquet.compression.codec;
 
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.parquet.bytes.ByteBufferInputStream;
 import org.apache.parquet.conf.ParquetConfiguration;
 
@@ -27,6 +26,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ * Simple streaming GZIP codec implementation.
+ */
 public class GzipCodec implements CompressionCodec {
 
   @Override
@@ -36,11 +38,11 @@ public class GzipCodec implements CompressionCodec {
 
   @Override
   public OutputStream createOutputStream(ByteArrayOutputStream compressedOutBuffer) throws IOException {
-    return new GzipCompressorOutputStream(compressedOutBuffer);
+    throw new CodecNotYetImplementedException("GZIP compression is not yet supported by this CompressionCodecFactory implementation.");
   }
 
   @Override
   public void configureCodec(ParquetConfiguration configuration) {
-    //todo
+    // todo
   }
 }

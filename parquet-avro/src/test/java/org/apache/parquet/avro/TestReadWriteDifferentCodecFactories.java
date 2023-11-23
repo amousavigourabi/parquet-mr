@@ -64,23 +64,25 @@ public class TestReadWriteDifferentCodecFactories {
   public static Collection<Object[]> data() {
     Object[][] data = new Object[][] {
       { CompressionCodecName.UNCOMPRESSED, true, true },
-      { CompressionCodecName.LZ4, true, true },
+//      { CompressionCodecName.LZ4, true, true },
+//      { CompressionCodecName.LZ4_RAW, true, true },
       { CompressionCodecName.GZIP, true, true },
-      { CompressionCodecName.LZ4_RAW, true, true },
-      { CompressionCodecName.SNAPPY, true, true },
-      { CompressionCodecName.ZSTD, true, true },
+//      { CompressionCodecName.SNAPPY, true, true },
+//      { CompressionCodecName.ZSTD, true, true },
       { CompressionCodecName.UNCOMPRESSED, false, true },
-      { CompressionCodecName.LZ4_RAW, false, true },
-      { CompressionCodecName.SNAPPY, false, true },
+//      { CompressionCodecName.LZ4_RAW, false, true },
+      { CompressionCodecName.GZIP, false, true },
+//      { CompressionCodecName.SNAPPY, false, true },
       { CompressionCodecName.UNCOMPRESSED, true, false },
-      { CompressionCodecName.LZ4_RAW, true, false },
-      { CompressionCodecName.SNAPPY, true, false },
+//      { CompressionCodecName.LZ4_RAW, true, false },
+      { CompressionCodecName.GZIP, true, false },
+//      { CompressionCodecName.SNAPPY, true, false },
       { CompressionCodecName.UNCOMPRESSED, false, false },
-      { CompressionCodecName.LZ4, false, false },
+//      { CompressionCodecName.LZ4, false, false },
       { CompressionCodecName.GZIP, false, false },
-      { CompressionCodecName.LZ4_RAW, false, false },
-      { CompressionCodecName.SNAPPY, false, false },
-      { CompressionCodecName.ZSTD, false, false }
+//      { CompressionCodecName.LZ4_RAW, false, false },
+//      { CompressionCodecName.SNAPPY, false, false },
+//      { CompressionCodecName.ZSTD, false, false }
     };
     return Arrays.asList(data);
   }

@@ -18,9 +18,6 @@
  */
 package org.apache.parquet.hadoop;
 
-import com.github.luben.zstd.BufferPool;
-import com.github.luben.zstd.NoPool;
-import com.github.luben.zstd.RecyclingBufferPool;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -51,7 +48,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Random;
 
-public class TestZstandardCodec {
+public class TestZstdCodec {
 
   private final Path inputPath = new Path("src/test/java/org/apache/parquet/hadoop/example/TestInputOutputFormat.java");
 
@@ -138,7 +135,7 @@ public class TestZstandardCodec {
     DeprecatedParquetOutputFormat.setWriteSupportClass(jobConf, GroupWriteSupport.class);
     GroupWriteSupport.setSchema(MessageTypeParser.parseMessageType(writeSchema), jobConf);
 
-    jobConf.setMapperClass(TestZstandardCodec.DumpMapper.class);
+    jobConf.setMapperClass(TestZstdCodec.DumpMapper.class);
     return JobClient.runJob(jobConf);
   }
 

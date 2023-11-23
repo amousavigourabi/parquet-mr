@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,9 +42,6 @@ import java.util.Map;
  * Brotli codecs cause it to fail.
  */
 public class SimpleCompressionCodecFactory implements CompressionCodecFactory {
-
-  protected static final Map<String, CompressionCodec> CODEC_BY_NAME = Collections
-    .synchronizedMap(new HashMap<>());
 
   private final Map<CompressionCodecName, BytesInputCompressor> compressors = new HashMap<>();
   private final Map<CompressionCodecName, BytesInputDecompressor> decompressors = new HashMap<>();
@@ -146,48 +142,20 @@ public class SimpleCompressionCodecFactory implements CompressionCodecFactory {
 
   /**
    *
-   * @param codecName
-   *          the requested codec
+   * @param codecName the requested codec
    * @return the corresponding simple codec. null if UNCOMPRESSED
    */
   protected CompressionCodec getCodec(CompressionCodecName codecName) {
-    String codecClassName = codecName.getSimpleCompressionCodecClassName();
-    if (codecClassName == null) {
+    Class<?> codecClass = codecName.getSimpleCompressionCodecClass();
+    if (codecClass == null) {
       return null;
-    }
-    String codecCacheKey = this.cacheKey(codecName);
-    CompressionCodec codec = CODEC_BY_NAME.get(codecCacheKey);
-    if (codec != null) {
-      return codec;
     }
 
     try {
-      Class<?> codecClass = Class.forName(codecClassName);
-      codec = (CompressionCodec) Reflection.newInstance(codecClass, configuration);
-      CODEC_BY_NAME.put(codecCacheKey, codec);
-      return codec;
-    } catch (ClassNotFoundException e) {
-      throw new RuntimeException("Class " + codecClassName + " was not found", e);
+      return (CompressionCodec) Reflection.newInstance(codecClass, configuration);
+    } catch (RuntimeException e) {
+      throw new RuntimeException("Class " + codecClass.getCanonicalName() + " could not be instantiated", e);
     }
-  }
-
-  private String cacheKey(CompressionCodecName codecName) {
-    String level = null;
-    switch (codecName) {
-      case GZIP:
-        level = configuration.get("zlib.compress.level");
-        break;
-      case BROTLI:
-        level = configuration.get("compression.brotli.quality");
-        break;
-      case ZSTD:
-        level = configuration.get("parquet.compression.codec.zstd.level");
-        break;
-      default:
-        // compression level is not supported; ignore it
-    }
-    String codecClass = codecName.getSimpleCompressionCodecClassName();
-    return level == null ? codecClass : codecClass + ":" + level;
   }
 
   @Override
